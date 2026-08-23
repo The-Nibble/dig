@@ -1,3 +1,5 @@
 .DS_Store
+__pycache__/
+index.json
 archive-index.json
-*.json
+descriptions.todo.json

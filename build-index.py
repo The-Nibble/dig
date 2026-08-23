@@ -167,6 +167,18 @@ entries = []
 eid = 0
 QUOTE_SEP = re.compile(r'\s+[~–—―‒]\s+|\s+--\s+')
 
+# descriptions are the text after the first link, so they often start with a
+# stray '.', ',', '?' or a dangling 'and/but'. tidy that mechanically.
+_LEAD = re.compile(r'^[\s.,;:!?)\]…–—"\'-]+')
+_CONN = re.compile(r'^(and|but|so|also|plus|yet)\b[\s,]*', re.I)
+def tidy_desc(d):
+    d = _CONN.sub('', _LEAD.sub('', d)).strip()
+    if d:
+        d = d[0].upper() + d[1:]
+        if d[-1] not in '.!?)”"':
+            d += '.'
+    return d
+
 for ed in sorted(editions_meta):
     meta = editions_meta[ed]
     body = open(meta['path']).read()
@@ -218,7 +230,7 @@ for ed in sorted(editions_meta):
             before = li[:am.start()]
             marker = marker_of(clean_text(before) or clean_text(li))
             after = clean_text(li[am.end():])
-            desc = re.sub(r'^[\s:_–—-]+', '', after).strip()
+            desc = tidy_desc(after)
             host, repo = entity(url)
             # furniture guard: skip only if sole substance is a furniture link
             if host and FURNITURE.search(host + urlparse(url).path) and not desc:
@@ -239,6 +251,23 @@ for ed in sorted(editions_meta):
 
 # assign ids in order
 for i, e in enumerate(entries, 1): e['id'] = i
+
+# --- optional AI description polish (opencode) -----------------------------
+# stable key so a rewrite survives re-parsing; cleaned text goes to a SEPARATE
+# field (descriptionClean) and never overwrites the deterministic ground truth.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+def _key(e): return f"{e['ed']}::" + (e.get('url') or ('q:' + e['title']))
+_clean_path = os.path.join(_HERE, 'descriptions.json')
+if os.path.exists(_clean_path):
+    _clean = json.load(open(_clean_path, encoding='utf-8'))
+    for e in entries:
+        c = _clean.get(_key(e))
+        if c: e['descriptionClean'] = c
+# write the to-rewrite list for an opencode sub-agent (intermediate, gitignored)
+_todo = {_key(e): {'title': e['title'], 'description': e['description']}
+         for e in entries if e.get('description')}
+json.dump(_todo, open(os.path.join(_HERE, 'descriptions.todo.json'), 'w', encoding='utf-8'),
+          ensure_ascii=False, indent=2)
 
 # ---- aggregate tags ----
 tagagg = {}
@@ -263,6 +292,7 @@ editions_out = []
 for ed in sorted(editions_meta):
     m = editions_meta[ed]
     editions_out.append({'number': m['number'], 'slug': m['slug'], 'title': m['title'],
+                         'url': 'https://nibbles.dev/p/' + m['slug'],
                          'publishedAt': m['publishedAt'], 'crossRefs': m['crossRefs'],
                          'entryCount': m['entryCount'], 'contentHash': m['contentHash']})
 
