@@ -99,7 +99,7 @@ flowchart TD
   M -- no --> K["keyword + synonym match<br/>(instant, deterministic)"]
   M -- yes --> W[Web Worker]
   subgraph bg [Web Worker - background thread]
-    W --> L["load all-MiniLM-L6-v2<br/>~23 MB, vendored in repo"]
+    W --> L["load paraphrase-MiniLM-L3-v2<br/>~17 MB, vendored in repo"]
     L --> E["embed 1861 entries<br/>(batched)"]
     W --> QE[embed the query]
   end
@@ -112,9 +112,11 @@ flowchart TD
 Step by step:
 
 1. **Toggle on.** The worker imports the vendored transformers.js and
-   loads `all-MiniLM-L6-v2` (quantized, ~23 MB) from the repo (`vendor/` +
+   loads `paraphrase-MiniLM-L3-v2` (quantized, ~17 MB) from the repo (`vendor/` +
    `models/`), then the browser caches it. Status line: "Setting up smart search…".
-   It warms up in the background on load; keyword search answers meanwhile.
+   The download is **deferred to first intent** — it starts when you focus the
+   search box (or open a shared `#q=` link), not on page load, so a plain visit
+   costs nothing. Keyword search answers instantly and while the model loads.
 2. **Load the corpus vectors.** The 1,861 doc vectors are precomputed at build
    time (`build-vectors.py`) and shipped as `vectors.f32`, so the browser just
    fetches them - no first-load embedding. They are cached in **IndexedDB** keyed
@@ -126,7 +128,7 @@ Step by step:
 4. **Fallback.** While the model warms up, keyword search still answers. If the
    model fails to load, smart search turns itself off and keyword search remains.
 
-**Cost / tradeoffs.** One-time ~23 MB model download (then cached). First-query
-latency is the model load plus a one-time corpus embed; instant after that. The
-there are no third-party runtime dependencies - the library, WASM runtime and
-model are all served from `dig.nibbles.dev` (they add ~42 MB to the repo).
+**Cost / tradeoffs.** One-time ~17 MB model download on first search (then cached). First-query
+latency is the model load plus embedding your query; instant after that.
+There are no third-party runtime dependencies - the library, WASM runtime and
+model are all served from `dig.nibbles.dev` (they add ~36 MB to the repo).

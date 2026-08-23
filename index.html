@@ -453,7 +453,7 @@ async function load(base) {
   T.env.allowLocalModels = true;
   T.env.localModelPath = base + 'models/';
   T.env.backends.onnx.wasm.wasmPaths = base + 'vendor/transformers/';
-  extractor = await T.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { quantized: true });
+  extractor = await T.pipeline('feature-extraction', 'Xenova/paraphrase-MiniLM-L3-v2', { quantized: true });
   postMessage({ type: 'loaded' });
 }
 async function embedDocs(texts) {
@@ -490,7 +490,7 @@ function semInit() {
   smartStatus('Setting up smart search…');
   SEM._p = (async () => {
     const base = new URL('.', location.href).href;
-    const key = 'vecs-mini6-' + DATA.entries.length + '-' + (DATA.generatedAt || '');
+    const key = 'vecs-paral3-' + DATA.entries.length + '-' + (DATA.generatedAt || '');
     const want = DATA.entries.length * SEM.dim * 4;
     const w = SEM.worker = makeWorker();
     const st = { model: false, docs: false, embedding: false };
@@ -550,7 +550,7 @@ function scoreAndRender(qv) {
 }
 let _semT;
 function semQueryDebounced() { clearTimeout(_semT); smartStatus('Searching…'); _semT = setTimeout(() => { if (state.q.trim()) semQuery(state.q.trim()); }, 160); }
-function onQuery() { if (SEM.on && SEM.ready && state.q.trim()) semQueryDebounced(); render(); }
+function onQuery() { if (SEM.on && !SEM.ready) warm(); if (SEM.on && SEM.ready && state.q.trim()) semQueryDebounced(); render(); }
 
 $('#smart').onclick = async () => {
   SEM.on = !SEM.on;
@@ -564,8 +564,10 @@ $('#smart').onclick = async () => {
 
 readHash();
 apply(BOOTSTRAP);
-/* smart search is on by default: warm it up in the background without blocking paint */
-if (SEM.on) { const warm = () => semInit().catch(() => {}); window.requestIdleCallback ? requestIdleCallback(warm, { timeout: 1500 }) : setTimeout(warm, 400); }
+/* defer the ~17 MB model to first intent: warm on focus/typing, not on page load */
+function warm() { if (SEM.on && !SEM.ready && !SEM.loading) semInit().catch(() => {}); }
+$('#q').addEventListener('focus', warm, { once: true });
+if (SEM.on && state.q.trim()) warm();   // arriving with a shared #q= link is intent
 </script>
 </body>
 </html>

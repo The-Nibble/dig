@@ -15,7 +15,7 @@ import onnxruntime as ort
 from tokenizers import Tokenizer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-M = os.path.join(HERE, 'models', 'Xenova', 'all-MiniLM-L6-v2')
+M = os.path.join(HERE, 'models', 'Xenova', 'paraphrase-MiniLM-L3-v2')
 DIM = 384
 
 # entries, in the exact order they are inlined in index.html
