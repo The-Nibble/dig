@@ -11,10 +11,11 @@ Live at **https://dig.nibbles.dev**
 
 `index.html` is a single self-contained static file - the full index is inlined,
 all logic is vanilla JS, no build step or backend at runtime. It's served by
-GitHub Pages (see `CNAME`). To ship: commit and push.
+GitHub Pages (see `CNAME`; `.nojekyll` disables Jekyll so `models/` and
+`vendor/` are served as-is). To ship: commit and push.
 
-The only thing that isn't self-contained is the optional smart-search model,
-which is fetched from a CDN on demand (see below).
+Even the optional smart-search model is vendored into the repo (`models/` and
+`vendor/transformers/`), so nothing is fetched from a third-party CDN at runtime.
 
 ## Regenerating the index
 
@@ -35,6 +36,13 @@ python3 build-index.py --json index.json
 
 `build-index.py` rewrites the `const BOOTSTRAP = ...` line in `index.html` in
 place, so the page stays self-contained.
+
+If the data changed, also regenerate the precomputed smart-search vectors (needs
+`onnxruntime`, `tokenizers`, `numpy`):
+
+```sh
+python3 build-vectors.py   # embeds the corpus with the vendored model -> vectors.f32
+```
 
 ## What it does / doesn't
 
@@ -67,7 +75,8 @@ prefers it; the deterministic `description` (ground truth) is never overwritten.
 
 ## How search works
 
-There are two search modes. The fast one is always on; the smart one is opt-in.
+There are two search modes. The fast one is always on; the smart one is on by
+default and can be toggled off.
 
 ### 1. Keyword + synonym (default, instant, no download)
 
@@ -77,7 +86,7 @@ tags, plus a hand-written concept-synonym layer. Typing `rag` expands to `vector
 says "rag". Matching is token/prefix based, not raw substring, so `rag` does not
 match "leve**rag**e". Fully deterministic and offline.
 
-### 2. Smart search (opt-in, in-browser semantic / "RAG retrieval")
+### 2. Smart search (on by default, in-browser semantic / "RAG retrieval")
 
 This is the retrieval half of a RAG pipeline - semantic search, no generation, no
 server. An embedding model runs **in the browser** via WebAssembly (ONNX Runtime
@@ -90,7 +99,7 @@ flowchart TD
   M -- no --> K["keyword + synonym match<br/>(instant, deterministic)"]
   M -- yes --> W[Web Worker]
   subgraph bg [Web Worker - background thread]
-    W --> L["load all-MiniLM-L6-v2<br/>~23 MB from CDN, once"]
+    W --> L["load all-MiniLM-L6-v2<br/>~23 MB, vendored in repo"]
     L --> E["embed 1861 entries<br/>(batched)"]
     W --> QE[embed the query]
   end
@@ -102,13 +111,15 @@ flowchart TD
 
 Step by step:
 
-1. **Toggle on.** The worker dynamically imports transformers.js from a CDN and
-   loads `all-MiniLM-L6-v2` (quantized, ~23 MB). Downloaded once, then cached by
-   the browser. Status line: "Search models are getting warm...".
-2. **Index once.** The worker embeds all 1,861 entries (title + description) into
-   384-dim vectors, in batches, reporting progress. The vectors are stored in
-   **IndexedDB**, keyed to the corpus, so later visits skip re-embedding. Rebuild
-   the index and the key changes, forcing a fresh embed.
+1. **Toggle on.** The worker imports the vendored transformers.js and
+   loads `all-MiniLM-L6-v2` (quantized, ~23 MB) from the repo (`vendor/` +
+   `models/`), then the browser caches it. Status line: "Setting up smart search…".
+   It warms up in the background on load; keyword search answers meanwhile.
+2. **Load the corpus vectors.** The 1,861 doc vectors are precomputed at build
+   time (`build-vectors.py`) and shipped as `vectors.f32`, so the browser just
+   fetches them - no first-load embedding. They are cached in **IndexedDB** keyed
+   to the corpus. If `vectors.f32` is missing or stale, the worker falls back to
+   embedding the corpus in-browser (reporting "Setting up smart search… N/1861").
 3. **Query.** Each query is embedded by the same model (in the worker). The main
    thread computes cosine similarity against the cached vectors (normalized, so
    it's a dot product) and ranks entries above a similarity threshold.
@@ -117,6 +128,5 @@ Step by step:
 
 **Cost / tradeoffs.** One-time ~23 MB model download (then cached). First-query
 latency is the model load plus a one-time corpus embed; instant after that. The
-one external dependency is the model file from the CDN - everything else is served
-from `dig.nibbles.dev`. To remove even that, the model can be committed into the
-repo and self-hosted (adds ~23 MB to the repo).
+there are no third-party runtime dependencies - the library, WASM runtime and
+model are all served from `dig.nibbles.dev` (they add ~42 MB to the repo).
