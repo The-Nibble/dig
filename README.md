@@ -13,8 +13,8 @@ Live at **https://dig.nibbles.dev**
 all logic is vanilla JS, no build step or backend at runtime. It's served by
 GitHub Pages (see `CNAME`). To ship: commit and push.
 
-The only thing that isn't self-contained is the optional smart-search model,
-which is fetched from a CDN on demand (see below).
+Even the optional smart-search model is vendored into the repo (`models/` and
+`vendor/transformers/`), so nothing is fetched from a third-party CDN at runtime.
 
 ## Regenerating the index
 
@@ -90,7 +90,7 @@ flowchart TD
   M -- no --> K["keyword + synonym match<br/>(instant, deterministic)"]
   M -- yes --> W[Web Worker]
   subgraph bg [Web Worker - background thread]
-    W --> L["load all-MiniLM-L6-v2<br/>~23 MB from CDN, once"]
+    W --> L["load all-MiniLM-L6-v2<br/>~23 MB, vendored in repo"]
     L --> E["embed 1861 entries<br/>(batched)"]
     W --> QE[embed the query]
   end
@@ -102,9 +102,9 @@ flowchart TD
 
 Step by step:
 
-1. **Toggle on.** The worker dynamically imports transformers.js from a CDN and
-   loads `all-MiniLM-L6-v2` (quantized, ~23 MB). Downloaded once, then cached by
-   the browser. Status line: "Search models are getting warm...".
+1. **Toggle on.** The worker imports the vendored transformers.js and
+   loads `all-MiniLM-L6-v2` (quantized, ~23 MB) from the repo (`vendor/` +
+   `models/`), then the browser caches it. Status line: "Search models are getting warm...".
 2. **Index once.** The worker embeds all 1,861 entries (title + description) into
    384-dim vectors, in batches, reporting progress. The vectors are stored in
    **IndexedDB**, keyed to the corpus, so later visits skip re-embedding. Rebuild
@@ -117,6 +117,5 @@ Step by step:
 
 **Cost / tradeoffs.** One-time ~23 MB model download (then cached). First-query
 latency is the model load plus a one-time corpus embed; instant after that. The
-one external dependency is the model file from the CDN - everything else is served
-from `dig.nibbles.dev`. To remove even that, the model can be committed into the
-repo and self-hosted (adds ~23 MB to the repo).
+there are no third-party runtime dependencies - the library, WASM runtime and
+model are all served from `dig.nibbles.dev` (they add ~42 MB to the repo).

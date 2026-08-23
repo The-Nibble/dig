@@ -448,9 +448,11 @@ async function idbSet(k, v) { try { const db = await idb();
 /* the worker: loads the model, embeds docs in batches, embeds queries on demand */
 const WORKER_SRC = `
 let extractor = null;
-async function load() {
-  const T = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
-  T.env.allowLocalModels = false;
+async function load(base) {
+  const T = await import(base + 'vendor/transformers/transformers.min.js');
+  T.env.allowLocalModels = true;
+  T.env.localModelPath = base + 'models/';
+  T.env.backends.onnx.wasm.wasmPaths = base + 'vendor/transformers/';
   extractor = await T.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { quantized: true });
   postMessage({ type: 'loaded' });
 }
@@ -470,7 +472,7 @@ async function query(text, tok) {
 }
 onmessage = async (e) => { const m = e.data;
   try {
-    if (m.type === 'load') await load();
+    if (m.type === 'load') await load(m.base);
     else if (m.type === 'embedDocs') await embedDocs(m.texts);
     else if (m.type === 'query') await query(m.text, m.tok);
   } catch (err) { postMessage({ type: 'error', message: String(err && err.message || err) }); }
@@ -513,7 +515,7 @@ function semInit() {
         reject(new Error(m.message));
       }
     };
-    idbGet(key).then(c => { cached = c; w.postMessage({ type: 'load' }); });
+    idbGet(key).then(c => { cached = c; w.postMessage({ type: 'load', base: new URL('.', location.href).href }); });
   });
   return SEM._p;
 }
