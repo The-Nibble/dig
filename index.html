@@ -488,35 +488,57 @@ function semInit() {
   if (SEM._p) return SEM._p;
   SEM.loading = true;
   smartStatus('Setting up smart search…');
-  SEM._p = new Promise((resolve, reject) => {
-    const key = 'vecs-' + DATA.entries.length + '-' + (DATA.generatedAt || '');
-    let cached = null;
+  SEM._p = (async () => {
+    const base = new URL('.', location.href).href;
+    const key = 'vecs-mini6-' + DATA.entries.length + '-' + (DATA.generatedAt || '');
+    const want = DATA.entries.length * SEM.dim * 4;
     const w = SEM.worker = makeWorker();
-    function finishDocs(buf) {
-      SEM.docVecs = new Float32Array(buf); SEM.ready = true; SEM.loading = false;
-      smartStatus(state.q.trim() ? '' : 'on · ask in plain English'); resolve(); if (state.q.trim()) semQuery(state.q.trim());
+    const st = { model: false, docs: false, embedding: false };
+    let resolveReady, rejectReady;
+    const done = new Promise((res, rej) => { resolveReady = res; rejectReady = rej; });
+    function check() {
+      if (st.model && st.docs && !SEM.ready) {
+        SEM.ready = true; SEM.loading = false;
+        smartStatus(state.q.trim() ? '' : 'on · ask in plain English');
+        resolveReady(); if (state.q.trim()) semQuery(state.q.trim());
+      }
     }
     w.onmessage = (e) => {
       const m = e.data;
       if (m.type === 'loaded') {
-        if (cached) finishDocs(cached);
-        else { smartStatus('Setting up smart search… 0/' + DATA.entries.length);
-          w.postMessage({ type: 'embedDocs', texts: DATA.entries.map(en => (en.title + '. ' + (en.description || '')).slice(0, 400)) }); }
+        st.model = true;
+        if (!st.docs && !st.embedding) {   // no precomputed/cached vectors -> embed in-browser
+          st.embedding = true;
+          smartStatus('Setting up smart search… 0/' + DATA.entries.length);
+          w.postMessage({ type: 'embedDocs', texts: DATA.entries.map(en => (en.title + '. ' + (en.description || '')).slice(0, 400)) });
+        }
+        check();
       } else if (m.type === 'progress') {
         smartStatus('Setting up smart search… ' + m.done + '/' + m.total);
       } else if (m.type === 'docs') {
-        finishDocs(m.buffer); idbSet(key, SEM.docVecs.buffer);
+        SEM.docVecs = new Float32Array(m.buffer); st.docs = true; idbSet(key, SEM.docVecs.buffer); check();
       } else if (m.type === 'qvec') {
         if (m.tok === SEM.qtok) scoreAndRender(new Float32Array(m.buffer));
       } else if (m.type === 'error') {
         SEM.loading = false; SEM.on = false; SEM._p = null;
         smartStatus('Smart search could not load — keyword search still works.');
         const b = $('#smart'); if (b) b.setAttribute('aria-pressed', 'false');
-        reject(new Error(m.message));
+        rejectReady(new Error(m.message));
       }
     };
-    idbGet(key).then(c => { cached = c; w.postMessage({ type: 'load', base: new URL('.', location.href).href }); });
-  });
+    // docs: IndexedDB cache -> precomputed vectors.f32 -> (fallback) embed after model loads
+    let buf = await idbGet(key);
+    if (!buf) {
+      try {
+        const r = await fetch(base + 'vectors.f32', { cache: 'force-cache' });
+        if (r.ok) { const ab = await r.arrayBuffer(); if (ab.byteLength === want) buf = ab; }
+      } catch {}
+    }
+    if (buf && buf.byteLength === want) { SEM.docVecs = new Float32Array(buf); st.docs = true; }
+    w.postMessage({ type: 'load', base });   // model is needed for queries regardless
+    check();
+    return done;
+  })();
   return SEM._p;
 }
 
