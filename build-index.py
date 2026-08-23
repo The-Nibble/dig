@@ -171,8 +171,10 @@ QUOTE_SEP = re.compile(r'\s+[~–—―‒]\s+|\s+--\s+')
 # stray '.', ',', '?' or a dangling 'and/but'. tidy that mechanically.
 _LEAD = re.compile(r'^[\s.,;:!?)\]…–—-]+')
 _CONN = re.compile(r'^(and|but|so|also|plus|yet)\b[\s,]*', re.I)
+_LABELS = re.compile(r'\s*[\[(]\s*(source|read|tweet|thread|link|video|watch|clip|blog|paper|article|via|gif|image|img|pic|reference|ref|details|here)\b[^\])]*[\])]?\.?\s*$', re.I)
 def tidy_desc(d):
     d = _CONN.sub('', _LEAD.sub('', d)).strip()
+    d = _LABELS.sub('', d).strip()          # drop a trailing "[Source]" / "(Read)" link label
     if d:
         d = d[0].upper() + d[1:]
         if d[-1] not in '.!?)”"':
