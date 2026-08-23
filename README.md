@@ -1,6 +1,6 @@
 # dig
 
-A searchable index of [The Nibble](https://nibbles.dev) — the timeless bits
+A searchable index of [The Nibble](https://nibbles.dev) - the timeless bits
 (tools, TILs, reads, quotes) pulled out of every edition of the newsletter, with
 the week's news left behind. Answers "when did we first and last talk about X"
 for any tag or search term.
@@ -9,14 +9,17 @@ Live at **https://dig.nibbles.dev**
 
 ## Hosting
 
-`index.html` is a single self-contained static file — the full index is inlined,
+`index.html` is a single self-contained static file - the full index is inlined,
 all logic is vanilla JS, no build step or backend at runtime. It's served by
 GitHub Pages (see `CNAME`). To ship: commit and push.
+
+The only thing that isn't self-contained is the optional smart-search model,
+which is fetched from a CDN on demand (see below).
 
 ## Regenerating the index
 
 The data is produced from a Substack export by a **heuristic** parser
-(`build-index.py`) — deterministic regex, best-effort tagging. It is *not* a
+(`build-index.py`) - deterministic regex, best-effort tagging. It is *not* a
 canonical system of record; a future canonical parser can overwrite the inlined
 data wholesale.
 
@@ -30,19 +33,16 @@ python3 build-index.py
 python3 build-index.py --json index.json
 ```
 
-`build-index.py` rewrites the `const BOOTSTRAP = …` line in `index.html` in
+`build-index.py` rewrites the `const BOOTSTRAP = ...` line in `index.html` in
 place, so the page stays self-contained.
 
 ## What it does / doesn't
 
-- **Editions #1–#100.** News is excluded (temporal); tools, curiosity, TILs,
+- **Editions #1-#100.** News is excluded (temporal); tools, curiosity, TILs,
   reads and quotes are kept. Unknown section headings are parked in Curiosity and
   reported, never dropped.
-- **Search is plain-English-ish**: token/prefix matching plus a concept-synonym
-  layer, so `rag` reaches vector stores, embeddings and LangChain even when an
-  entry never says "rag". No embeddings/model — deterministic and offline.
 - **First/last trace** works for any tag chip *and* any free-text query.
-- URL reflects state (`#q=…`, `#tag=…`), so a first/last view is a shareable link.
+- URL reflects state (`#q=...`, `#tag=...`), so a first/last view is a shareable link.
 
 ## Descriptions and edition links
 
@@ -64,3 +64,59 @@ python3 build-index.py                          # merges + re-inlines into index
 The rewritten text goes to a separate `descriptionClean` field and the page
 prefers it; the deterministic `description` (ground truth) is never overwritten.
 `descriptions.json` is committed; `descriptions.todo.json` is an intermediate.
+
+## How search works
+
+There are two search modes. The fast one is always on; the smart one is opt-in.
+
+### 1. Keyword + synonym (default, instant, no download)
+
+Token/prefix matching over each entry's title, description, heading, domain and
+tags, plus a hand-written concept-synonym layer. Typing `rag` expands to `vector`,
+`embedding`, `langchain`, etc., so it reaches those tools even when an entry never
+says "rag". Matching is token/prefix based, not raw substring, so `rag` does not
+match "leve**rag**e". Fully deterministic and offline.
+
+### 2. Smart search (opt-in, in-browser semantic / "RAG retrieval")
+
+This is the retrieval half of a RAG pipeline - semantic search, no generation, no
+server. An embedding model runs **in the browser** via WebAssembly (ONNX Runtime
+through [transformers.js](https://github.com/xenova/transformers.js)). All of the
+heavy work happens in a **Web Worker**, so the page never freezes.
+
+```mermaid
+flowchart TD
+  Q[User types a query] --> M{smart search on?}
+  M -- no --> K["keyword + synonym match<br/>(instant, deterministic)"]
+  M -- yes --> W[Web Worker]
+  subgraph bg [Web Worker - background thread]
+    W --> L["load all-MiniLM-L6-v2<br/>~23 MB from CDN, once"]
+    L --> E["embed 1861 entries<br/>(batched)"]
+    W --> QE[embed the query]
+  end
+  E --> CACHE[(IndexedDB<br/>vector cache)]
+  CACHE --> S[cosine similarity]
+  QE --> S
+  S --> R[ranked results + first/last trace]
+```
+
+Step by step:
+
+1. **Toggle on.** The worker dynamically imports transformers.js from a CDN and
+   loads `all-MiniLM-L6-v2` (quantized, ~23 MB). Downloaded once, then cached by
+   the browser. Status line: "Search models are getting warm...".
+2. **Index once.** The worker embeds all 1,861 entries (title + description) into
+   384-dim vectors, in batches, reporting progress. The vectors are stored in
+   **IndexedDB**, keyed to the corpus, so later visits skip re-embedding. Rebuild
+   the index and the key changes, forcing a fresh embed.
+3. **Query.** Each query is embedded by the same model (in the worker). The main
+   thread computes cosine similarity against the cached vectors (normalized, so
+   it's a dot product) and ranks entries above a similarity threshold.
+4. **Fallback.** While the model warms up, keyword search still answers. If the
+   model fails to load, smart search turns itself off and keyword search remains.
+
+**Cost / tradeoffs.** One-time ~23 MB model download (then cached). First-query
+latency is the model load plus a one-time corpus embed; instant after that. The
+one external dependency is the model file from the CDN - everything else is served
+from `dig.nibbles.dev`. To remove even that, the model can be committed into the
+repo and self-hosted (adds ~23 MB to the repo).
