@@ -43,3 +43,24 @@ place, so the page stays self-contained.
   entry never says "rag". No embeddings/model — deterministic and offline.
 - **First/last trace** works for any tag chip *and* any free-text query.
 - URL reflects state (`#q=…`, `#tag=…`), so a first/last view is a shareable link.
+
+## Descriptions and edition links
+
+Each entry links to its source, and its edition number links back to that edition
+on Substack (`nibbles.dev/p/<slug>`). This is edition-level, since Substack has no
+reliable per-line anchor.
+
+Descriptions are extracted as the text after the first link, so `build-index.py`
+tidies them deterministically (strips stray leading punctuation and a dangling
+"and"/"but", capitalizes, adds a full stop). For an extra polish pass, an
+**opencode** sub-agent can rewrite them:
+
+```sh
+python3 build-index.py                          # also writes descriptions.todo.json
+opencode run "$(cat rewrite-descriptions.md)"   # writes descriptions.json
+python3 build-index.py                          # merges + re-inlines into index.html
+```
+
+The rewritten text goes to a separate `descriptionClean` field and the page
+prefers it; the deterministic `description` (ground truth) is never overwritten.
+`descriptions.json` is committed; `descriptions.todo.json` is an intermediate.
