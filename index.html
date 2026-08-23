@@ -152,9 +152,15 @@
   .empty b{color:var(--ink)}
 
   @media(prefers-reduced-motion:reduce){ *{transition:none!important} }
-  .smartrow{display:flex; align-items:center; gap:10px; margin:2px 0 14px}
-  .smartstatus{font-family:var(--mono); font-size:10px; color:var(--dim)}
-  #smart[aria-pressed="true"]{background:var(--brass); border-color:var(--brass); color:var(--paper)}
+  .smartrow{display:flex; align-items:center; gap:10px; margin:2px 0 16px; flex-wrap:wrap}
+  .smartbtn{
+    font-family:var(--mono); font-size:12px; letter-spacing:.02em;
+    background:var(--hit); color:var(--paper); border:1px solid var(--hit);
+    padding:6px 12px; cursor:pointer; border-radius:0;
+  }
+  .smartbtn[aria-pressed="false"]{background:transparent; color:var(--dim); border-color:var(--rule)}
+  .smartbtn:hover{filter:brightness(1.08)}
+  .smartstatus{font-family:var(--mono); font-size:11px; color:var(--brass)}
 </style>
 </head>
 <body>
@@ -177,7 +183,7 @@
 </div>
 
 <div class="smartrow">
-  <button type="button" id="smart" class="chip" aria-pressed="false">✦ smart search</button>
+  <button type="button" id="smart" class="smartbtn" aria-pressed="true">✦ Smart search</button>
   <span id="smartstatus" class="smartstatus" role="status" aria-live="polite"></span>
 </div>
 
@@ -423,7 +429,7 @@ addEventListener('keydown', ev => {
 /* ---- optional semantic "smart" search: embeddings run in a Web Worker ---- */
 /* the model download, corpus indexing and query embedding all happen off the main
    thread, so the page never freezes. transformers.js runs ONNX via WASM. */
-const SEM = { on:false, ready:false, loading:false, worker:null, docVecs:null, dim:384, qtok:0, _p:null };
+const SEM = { on:true, ready:false, loading:false, worker:null, docVecs:null, dim:384, qtok:0, _p:null };
 const smartStatus = (m) => { const el = $('#smartstatus'); if (el) el.textContent = m || ''; };
 
 /* IndexedDB cache for the corpus vectors, keyed to the corpus so a rebuild re-embeds */
@@ -476,23 +482,23 @@ function semInit() {
   if (SEM.ready) return Promise.resolve();
   if (SEM._p) return SEM._p;
   SEM.loading = true;
-  smartStatus('Search models are getting warm… (~23 MB, first time only)');
+  smartStatus('Setting up smart search…');
   SEM._p = new Promise((resolve, reject) => {
     const key = 'vecs-' + DATA.entries.length + '-' + (DATA.generatedAt || '');
     let cached = null;
     const w = SEM.worker = makeWorker();
     function finishDocs(buf) {
       SEM.docVecs = new Float32Array(buf); SEM.ready = true; SEM.loading = false;
-      smartStatus(''); resolve(); if (state.q.trim()) semQuery(state.q.trim());
+      smartStatus(state.q.trim() ? '' : 'on · ask in plain English'); resolve(); if (state.q.trim()) semQuery(state.q.trim());
     }
     w.onmessage = (e) => {
       const m = e.data;
       if (m.type === 'loaded') {
         if (cached) finishDocs(cached);
-        else { smartStatus('Reading the archive… 0/' + DATA.entries.length);
+        else { smartStatus('Setting up smart search… 0/' + DATA.entries.length);
           w.postMessage({ type: 'embedDocs', texts: DATA.entries.map(en => (en.title + '. ' + (en.description || '')).slice(0, 400)) }); }
       } else if (m.type === 'progress') {
-        smartStatus('Reading the archive… ' + m.done + '/' + m.total);
+        smartStatus('Setting up smart search… ' + m.done + '/' + m.total);
       } else if (m.type === 'docs') {
         finishDocs(m.buffer); idbSet(key, SEM.docVecs.buffer);
       } else if (m.type === 'qvec') {
@@ -522,13 +528,17 @@ function onQuery() { if (SEM.on && SEM.ready && state.q.trim()) semQueryDebounce
 $('#smart').onclick = async () => {
   SEM.on = !SEM.on;
   $('#smart').setAttribute('aria-pressed', String(SEM.on));
-  if (SEM.on && !SEM.ready) { try { await semInit(); } catch { return; } }
-  else if (SEM.on && SEM.ready && state.q.trim()) semQuery(state.q.trim());
+  if (!SEM.on) { smartStatus(''); render(); return; }
+  if (!SEM.ready) { try { await semInit(); } catch { return; } }
+  else if (state.q.trim()) semQuery(state.q.trim());
+  else smartStatus('on · ask in plain English');
   render();
 };
 
 readHash();
 apply(BOOTSTRAP);
+/* smart search is on by default: warm it up in the background without blocking paint */
+if (SEM.on) { const warm = () => semInit().catch(() => {}); window.requestIdleCallback ? requestIdleCallback(warm, { timeout: 1500 }) : setTimeout(warm, 400); }
 </script>
 </body>
 </html>
