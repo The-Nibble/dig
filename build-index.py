@@ -169,7 +169,7 @@ QUOTE_SEP = re.compile(r'\s+[~–—―‒]\s+|\s+--\s+')
 
 # descriptions are the text after the first link, so they often start with a
 # stray '.', ',', '?' or a dangling 'and/but'. tidy that mechanically.
-_LEAD = re.compile(r'^[\s.,;:!?)\]…–—"\'-]+')
+_LEAD = re.compile(r'^[\s.,;:!?)\]…–—-]+')
 _CONN = re.compile(r'^(and|but|so|also|plus|yet)\b[\s,]*', re.I)
 def tidy_desc(d):
     d = _CONN.sub('', _LEAD.sub('', d)).strip()
@@ -228,9 +228,13 @@ for ed in sorted(editions_meta):
             title = clean_text(am.group(2))
             if not title: continue
             before = li[:am.start()]
-            marker = marker_of(clean_text(before) or clean_text(li))
+            before_txt = clean_text(before)
+            marker = marker_of(before_txt if before_txt else clean_text(li))
+            if marker and before_txt.startswith(marker): before_txt = before_txt[len(marker):]
+            before_txt = re.sub(r'[\s\[\(<–—:-]+$', '', before_txt).strip()
             after = clean_text(li[am.end():])
-            desc = tidy_desc(after)
+            # links at the end of a sentence have no trailing text; use the lead-in
+            desc = tidy_desc(after) or tidy_desc(before_txt)
             host, repo = entity(url)
             # furniture guard: skip only if sole substance is a furniture link
             if host and FURNITURE.search(host + urlparse(url).path) and not desc:
