@@ -453,7 +453,13 @@ async function load(base) {
   T.env.allowLocalModels = true;
   T.env.localModelPath = base + 'models/';
   T.env.backends.onnx.wasm.wasmPaths = base + 'vendor/transformers/';
-  extractor = await T.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { quantized: true });
+  extractor = await T.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+    quantized: true,
+    progress_callback: (p) => {
+      if (p.status === 'progress' && (p.file || '').endsWith('.onnx') && typeof p.progress === 'number')
+        postMessage({ type: 'dl', pct: Math.min(100, Math.max(0, Math.round(p.progress))) });
+    },
+  });
   postMessage({ type: 'loaded' });
 }
 async function embedDocs(texts) {
@@ -509,12 +515,14 @@ function semInit() {
         st.model = true;
         if (!st.docs && !st.embedding) {   // no precomputed/cached vectors -> embed in-browser
           st.embedding = true;
-          smartStatus('Setting up smart search… 0/' + DATA.entries.length);
+          smartStatus('Setting up smart search… 0%');
           w.postMessage({ type: 'embedDocs', texts: DATA.entries.map(en => (en.title + '. ' + (en.description || '')).slice(0, 400)) });
         }
         check();
+      } else if (m.type === 'dl') {
+        if (!SEM.ready) smartStatus('Setting up smart search… ' + m.pct + '%');
       } else if (m.type === 'progress') {
-        smartStatus('Setting up smart search… ' + m.done + '/' + m.total);
+        if (!SEM.ready) smartStatus('Setting up smart search… ' + Math.round(m.done / m.total * 100) + '%');
       } else if (m.type === 'docs') {
         SEM.docVecs = new Float32Array(m.buffer); st.docs = true; idbSet(key, SEM.docVecs.buffer); check();
       } else if (m.type === 'qvec') {
