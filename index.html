@@ -152,6 +152,9 @@
   .empty b{color:var(--ink)}
 
   @media(prefers-reduced-motion:reduce){ *{transition:none!important} }
+  .smartrow{display:flex; align-items:center; gap:10px; margin:2px 0 14px}
+  .smartstatus{font-family:var(--mono); font-size:10px; color:var(--dim)}
+  #smart[aria-pressed="true"]{background:var(--brass); border-color:var(--brass); color:var(--paper)}
 </style>
 </head>
 <body>
@@ -171,6 +174,11 @@
 <div class="search">
   <span class="glyph">/</span>
   <input id="q" type="search" placeholder="search tools, links, quotes…" autocomplete="off" spellcheck="false" aria-label="Search the archive">
+</div>
+
+<div class="smartrow">
+  <button type="button" id="smart" class="chip" aria-pressed="false">✦ smart search</button>
+  <span id="smartstatus" class="smartstatus" role="status" aria-live="polite"></span>
 </div>
 
 <div class="facet-label">Section</div>
@@ -308,8 +316,17 @@ function render() {
     c.setAttribute('aria-pressed', String(c.dataset.slug === state.tag)));
 
   const CAP = 200;
-  const hits = DATA.entries.filter(matches)
-    .sort((a, b) => (b.timeless - a.timeless) || (b.ed - a.ed) || a.id - b.id);
+  let hits;
+  if (SEM.on && SEM.ready && state.q.trim()) {
+    const ranked = DATA.entries
+      .filter(e => (!state.tag || e.tags.includes(state.tag)) && e._score !== undefined)
+      .sort((a, b) => b._score - a._score);
+    hits = ranked.filter(e => e._score >= 0.3);
+    if (hits.length < 8) hits = ranked.slice(0, 20);
+  } else {
+    hits = DATA.entries.filter(matches)
+      .sort((a, b) => (b.timeless - a.timeless) || (b.ed - a.ed) || a.id - b.id);
+  }
   const shown = hits.slice(0, CAP);
 
   const activeTag = DATA.tags.find(t => t.slug === state.tag);
@@ -392,7 +409,7 @@ function apply(data) {
   render();
 }
 
-$('#q').addEventListener('input', ev => { state.q = ev.target.value; render(); });
+$('#q').addEventListener('input', ev => { state.q = ev.target.value; onQuery(); });
 
 /* "/" jumps to search, matching the glyph in the box */
 addEventListener('keydown', ev => {
@@ -403,6 +420,113 @@ addEventListener('keydown', ev => {
 });
 
 /* self-contained: the full index is inlined above as BOOTSTRAP */
+/* ---- optional semantic "smart" search: embeddings run in a Web Worker ---- */
+/* the model download, corpus indexing and query embedding all happen off the main
+   thread, so the page never freezes. transformers.js runs ONNX via WASM. */
+const SEM = { on:false, ready:false, loading:false, worker:null, docVecs:null, dim:384, qtok:0, _p:null };
+const smartStatus = (m) => { const el = $('#smartstatus'); if (el) el.textContent = m || ''; };
+
+/* IndexedDB cache for the corpus vectors, keyed to the corpus so a rebuild re-embeds */
+function idb() { return new Promise((res, rej) => { const r = indexedDB.open('dig', 1);
+  r.onupgradeneeded = () => r.result.createObjectStore('vecs');
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function idbGet(k) { try { const db = await idb();
+  return await new Promise(res => { const t = db.transaction('vecs').objectStore('vecs').get(k);
+    t.onsuccess = () => res(t.result || null); t.onerror = () => res(null); }); } catch { return null; } }
+async function idbSet(k, v) { try { const db = await idb();
+  db.transaction('vecs', 'readwrite').objectStore('vecs').put(v, k); } catch {} }
+
+/* the worker: loads the model, embeds docs in batches, embeds queries on demand */
+const WORKER_SRC = `
+let extractor = null;
+async function load() {
+  const T = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+  T.env.allowLocalModels = false;
+  extractor = await T.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { quantized: true });
+  postMessage({ type: 'loaded' });
+}
+async function embedDocs(texts) {
+  const dim = 384, N = texts.length, vecs = new Float32Array(N * dim), B = 64;
+  for (let i = 0; i < N; i += B) {
+    const out = await extractor(texts.slice(i, i + B), { pooling: 'mean', normalize: true });
+    vecs.set(out.data, i * dim);
+    postMessage({ type: 'progress', done: Math.min(i + B, N), total: N });
+  }
+  postMessage({ type: 'docs', buffer: vecs.buffer }, [vecs.buffer]);
+}
+async function query(text, tok) {
+  const out = await extractor(text, { pooling: 'mean', normalize: true });
+  const v = new Float32Array(out.data);
+  postMessage({ type: 'qvec', buffer: v.buffer, tok }, [v.buffer]);
+}
+onmessage = async (e) => { const m = e.data;
+  try {
+    if (m.type === 'load') await load();
+    else if (m.type === 'embedDocs') await embedDocs(m.texts);
+    else if (m.type === 'query') await query(m.text, m.tok);
+  } catch (err) { postMessage({ type: 'error', message: String(err && err.message || err) }); }
+};
+`;
+function makeWorker() {
+  const url = URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' }));
+  return new Worker(url, { type: 'module' });
+}
+
+function semInit() {
+  if (SEM.ready) return Promise.resolve();
+  if (SEM._p) return SEM._p;
+  SEM.loading = true;
+  smartStatus('Search models are getting warm… (~23 MB, first time only)');
+  SEM._p = new Promise((resolve, reject) => {
+    const key = 'vecs-' + DATA.entries.length + '-' + (DATA.generatedAt || '');
+    let cached = null;
+    const w = SEM.worker = makeWorker();
+    function finishDocs(buf) {
+      SEM.docVecs = new Float32Array(buf); SEM.ready = true; SEM.loading = false;
+      smartStatus(''); resolve(); if (state.q.trim()) semQuery(state.q.trim());
+    }
+    w.onmessage = (e) => {
+      const m = e.data;
+      if (m.type === 'loaded') {
+        if (cached) finishDocs(cached);
+        else { smartStatus('Reading the archive… 0/' + DATA.entries.length);
+          w.postMessage({ type: 'embedDocs', texts: DATA.entries.map(en => (en.title + '. ' + (en.description || '')).slice(0, 400)) }); }
+      } else if (m.type === 'progress') {
+        smartStatus('Reading the archive… ' + m.done + '/' + m.total);
+      } else if (m.type === 'docs') {
+        finishDocs(m.buffer); idbSet(key, SEM.docVecs.buffer);
+      } else if (m.type === 'qvec') {
+        if (m.tok === SEM.qtok) scoreAndRender(new Float32Array(m.buffer));
+      } else if (m.type === 'error') {
+        SEM.loading = false; SEM.on = false; SEM._p = null;
+        smartStatus('Smart search could not load — keyword search still works.');
+        const b = $('#smart'); if (b) b.setAttribute('aria-pressed', 'false');
+        reject(new Error(m.message));
+      }
+    };
+    idbGet(key).then(c => { cached = c; w.postMessage({ type: 'load' }); });
+  });
+  return SEM._p;
+}
+
+function semQuery(q) { if (!SEM.ready || !SEM.worker) return; SEM.worker.postMessage({ type: 'query', text: q, tok: ++SEM.qtok }); }
+function scoreAndRender(qv) {
+  const N = DATA.entries.length, dim = SEM.dim, dv = SEM.docVecs;
+  for (let i = 0; i < N; i++) { let s = 0; const off = i * dim; for (let j = 0; j < dim; j++) s += qv[j] * dv[off + j]; DATA.entries[i]._score = s; }
+  smartStatus(''); render();
+}
+let _semT;
+function semQueryDebounced() { clearTimeout(_semT); smartStatus('Searching…'); _semT = setTimeout(() => { if (state.q.trim()) semQuery(state.q.trim()); }, 160); }
+function onQuery() { if (SEM.on && SEM.ready && state.q.trim()) semQueryDebounced(); render(); }
+
+$('#smart').onclick = async () => {
+  SEM.on = !SEM.on;
+  $('#smart').setAttribute('aria-pressed', String(SEM.on));
+  if (SEM.on && !SEM.ready) { try { await semInit(); } catch { return; } }
+  else if (SEM.on && SEM.ready && state.q.trim()) semQuery(state.q.trim());
+  render();
+};
+
 readHash();
 apply(BOOTSTRAP);
 </script>
