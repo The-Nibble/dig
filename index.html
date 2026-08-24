@@ -52,16 +52,6 @@
   .lede{color:var(--dim); font-size:14px; margin:0 0 18px; max-width:52ch}
   .lede b{color:var(--ink); font-weight:600}
 
-  .notice{
-    font-family:var(--mono); font-size:10.5px; line-height:1.75; color:var(--dim);
-    border-left:2px solid var(--brass); padding:8px 0 8px 11px; margin:0 0 24px;
-  }
-  .notice b{color:var(--ink); font-weight:600}
-  .notice .cmd{
-    display:inline-block; background:var(--panel); border:1px solid var(--rule);
-    padding:1px 6px; color:var(--ink);
-  }
-
   /* ---- controls ---- */
   .search{position:relative; margin-bottom:14px}
   .search input{
@@ -210,11 +200,6 @@
   Search by keyword or topic, and see when anything first and last came up. News isn't included.
 </p>
 
-<p class="notice" id="notice">
-  Search in plain words: <span class="cmd">rag</span> finds vector databases and LangChain,
-  not just that exact string. Filter by section or topic below.
-</p>
-
 <div class="search">
   <span class="glyph">/</span>
   <input id="q" type="search" placeholder="search tools, links, quotes…" autocomplete="off" spellcheck="false" aria-label="Search the archive">
@@ -339,6 +324,7 @@ function expand(w) {
 /* token/prefix matching, not raw substring: "rag" hits the token "rag" and RAG
    tools, but not "leve-rag-e"; "type" still prefix-matches "typescript". */
 const tokenize = (s) => s.toLowerCase().split(/[^a-z0-9.+#]+/).filter(Boolean);
+const queryTerms = () => tokenize(state.q.trim());
 
 function indexHay(e) {
   if (e._hay) return e;
@@ -367,8 +353,7 @@ function matches(e) {
   if (state.tag && !e.tags.includes(state.tag)) return false;
   if (!state.q) return true;
   indexHay(e);
-  return state.q.toLowerCase().split(/\s+/).filter(Boolean)
-    .every(w => expand(w).some(a => termHit(a, e)));
+  return queryTerms().every(w => expand(w).some(a => termHit(a, e)));
 }
 
 /* ---- relevance ----
@@ -450,7 +435,12 @@ function scoreOneWord(word, e, mult, prefix) {
    rather than once per term per entry (1862x cheaper on a wide group like llm) */
 function planTerm(term) {
   const alts = expand(term).filter(a => a !== term);
-  return { term, words: alts.filter(a => !a.includes(' ')), phrases: alts.filter(a => a.includes(' ')) };
+  return {
+    term,
+    recognized: alts.length > 0,
+    words: alts.filter(a => !a.includes(' ')),
+    phrases: alts.filter(a => a.includes(' ')),
+  };
 }
 
 function scoreTerm(p, e) {
@@ -474,6 +464,7 @@ function scoreTerm(p, e) {
 function scoreKeyword(entries, terms) {
   const n = entries.length;
   const cols = [];
+  const literal = new Uint8Array(n);
   let anchored = false;
   for (const term of terms) {
     const p = planTerm(term);
@@ -482,10 +473,10 @@ function scoreKeyword(entries, terms) {
     for (let i = 0; i < n; i++) {
       const v = scoreTerm(p, indexHay(entries[i]));
       col[i] = v; if (v) df++;
-      if (v >= LITERAL_TIER) litDf++;
+      if (v >= LITERAL_TIER) { litDf++; literal[i] = 1; }
     }
     cols.push({ col, damp: idf(df, n) });
-    if (litDf) anchored = true;
+    if (litDf || p.recognized) anchored = true;
   }
   const out = new Float64Array(n);
   for (let i = 0; i < n; i++) {
@@ -494,8 +485,10 @@ function scoreKeyword(entries, terms) {
     out[i] = sum / terms.length;
   }
   /* `anchored` is the only trustworthy signal that the query means something
-     here: at least one word the reader typed genuinely occurs in the archive */
+     here: at least one word the reader typed genuinely occurs in the archive,
+     or it belongs to a synonym group maintained for this corpus */
   out.anchored = anchored;
+  out.literal = literal;
   return out;
 }
 
@@ -514,7 +507,7 @@ const chronological = (a, b) =>
 /* One list, ordered and already cut. render() only slices it into pages. */
 function selectHits() {
   const all = DATA.entries;
-  const terms = state.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const terms = queryTerms();
 
   /* no query: plain chronological browse, exactly as before */
   if (!terms.length) return all.filter(matches).sort(chronological);
@@ -536,8 +529,9 @@ function selectHits() {
      the honest result is none rather than the twenty least-dissimilar rows. */
   if (!kw.anchored) return [];
 
+  const kwIdx = new Map(all.map((e, i) => [e.id, i]));
   const kwRank = new Map();
-  all.map((e, i) => [e, kw[i]])
+  all.map(e => [e, kw[kwIdx.get(e.id)]])
      .filter(([e, v]) => v > 0 && tagOk(e))
      .sort((a, b) => b[1] - a[1])
      .slice(0, KW_RANK_CAP)
@@ -563,7 +557,14 @@ function selectHits() {
     if (titleExact(e, terms)) sc += TITLE_EXACT_BONUS;
     fused.set(e.id, sc);
   }
-  return [...pool.values()].sort(byRank(e => fused.get(e.id)));
+  const fusedRank = byRank(e => fused.get(e.id));
+  return [...pool.values()].sort((a, b) =>
+    (kw.literal[kwIdx.get(b.id)] - kw.literal[kwIdx.get(a.id)])
+    || fusedRank(a, b));
+}
+
+function resultsAreFinal() {
+  return !state.q.trim() || !SEM.on || (SEM.ready && SEM.scoredTok === SEM.qtok);
 }
 
 function render() {
@@ -572,8 +573,11 @@ function render() {
 
   const hits = selectHits();
   const pages = Math.max(1, Math.ceil(hits.length / state.per));
-  state.page = Math.min(Math.max(1, state.page), pages);   // a stale #p= deep link lands on the last page, not a blank one
-  const from = (state.page - 1) * state.per;
+  const page = Math.min(Math.max(1, state.page), pages);
+  /* Keyword results are provisional while smart search warms up. Render the
+     nearest available page, but keep a deep-linked page for the final ranking. */
+  if (resultsAreFinal()) state.page = page;
+  const from = (page - 1) * state.per;
   const shown = hits.slice(from, from + state.per);
 
   const activeTag = DATA.tags.find(t => t.slug === state.tag);
@@ -596,7 +600,7 @@ function render() {
   const ol = $('#results');
   ol.innerHTML = '';
   if (!hits.length) {
-    paintPager(0, 1);
+    paintPager(0, 1, page);
     const eds = DATA.editions.map(e => e.number).sort((a, b) => a - b);
     const partial = eds.length < 100;
     ol.innerHTML = `<li class="empty">Nothing matches that yet.<br>`
@@ -634,7 +638,7 @@ function render() {
   ol.querySelectorAll('.tag').forEach(el =>
     el.onclick = () => { state.tag = el.dataset.t; state.page = 1; render(); scrollToTop(); });
 
-  paintPager(hits.length, pages);
+  paintPager(hits.length, pages, page);
 }
 
 /* the media query at the top of the file only silences CSS transitions - a JS
@@ -657,7 +661,7 @@ function pageWindow(page, pages) {
   return out;
 }
 
-function paintPager(total, pages) {
+function paintPager(total, pages, page) {
   const host = $('#pager');
   if (total <= state.per) { host.className = 'pager'; host.innerHTML = ''; return; }
   host.className = 'pager on';
@@ -673,9 +677,9 @@ function paintPager(total, pages) {
     if (enabled) b.onclick = () => go(to);
     pagesRow.appendChild(b);
   };
-  step('\u00ab first', 1, state.page > 1, 'First page');
-  step('\u2190 prev', state.page - 1, state.page > 1, 'Previous page');
-  for (const n of pageWindow(state.page, pages)) {
+  step('\u00ab first', 1, page > 1, 'First page');
+  step('\u2190 prev', page - 1, page > 1, 'Previous page');
+  for (const n of pageWindow(page, pages)) {
     if (n === 'gap') {
       const g = document.createElement('span');
       g.className = 'gapdots'; g.textContent = '\u2026';
@@ -685,12 +689,12 @@ function paintPager(total, pages) {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'pgbtn'; b.textContent = String(n);
     b.setAttribute('aria-label', 'Page ' + n);
-    if (n === state.page) b.setAttribute('aria-current', 'page');
+    if (n === page) b.setAttribute('aria-current', 'page');
     else b.onclick = () => go(n);
     pagesRow.appendChild(b);
   }
-  step('next \u2192', state.page + 1, state.page < pages, 'Next page');
-  step('last \u00bb', pages, state.page < pages, 'Last page');
+  step('next \u2192', page + 1, page < pages, 'Next page');
+  step('last \u00bb', pages, page < pages, 'Last page');
 
   const per = document.createElement('div');
   per.className = 'per';
@@ -847,6 +851,7 @@ function semInit() {
         SEM.loading = false; SEM.on = false; SEM._p = null;
         smartStatus('Smart search could not load — keyword search still works.');
         const b = $('#smart'); if (b) b.setAttribute('aria-pressed', 'false');
+        render();
         rejectReady(new Error(m.message));
       }
     };
@@ -866,7 +871,10 @@ function semInit() {
   return SEM._p;
 }
 
-function semQuery(q) { if (!SEM.ready || !SEM.worker) return; SEM.worker.postMessage({ type: 'query', text: q, tok: ++SEM.qtok }); }
+function semQuery(q) {
+  if (!SEM.ready || !SEM.worker) return;
+  SEM.worker.postMessage({ type: 'query', text: tokenize(q).join(' '), tok: ++SEM.qtok });
+}
 function scoreAndRender(qv, tok) {
   const N = DATA.entries.length, dim = SEM.dim, dv = SEM.docVecs;
   for (let i = 0; i < N; i++) { let s = 0; const off = i * dim; for (let j = 0; j < dim; j++) s += qv[j] * dv[off + j]; DATA.entries[i]._score = s; }
