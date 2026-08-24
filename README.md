@@ -15,7 +15,9 @@ GitHub Pages (see `CNAME`; `.nojekyll` disables Jekyll so `models/` and
 `vendor/` are served as-is). To ship: commit and push.
 
 Even the optional smart-search model is vendored into the repo (`models/` and
-`vendor/transformers/`), so nothing is fetched from a third-party CDN at runtime.
+`vendor/transformers/`), so the search stack pulls nothing from a third-party CDN
+at runtime. The two webfonts are the one exception - they still come from Google
+Fonts.
 
 ## Regenerating the index
 
@@ -100,7 +102,7 @@ flowchart TD
   M -- yes --> W[Web Worker]
   subgraph bg [Web Worker - background thread]
     W --> L["load all-MiniLM-L6-v2<br/>~23 MB, vendored in repo"]
-    L --> E["embed 1861 entries<br/>(batched)"]
+    L --> E["embed 1862 entries<br/>(batched)"]
     W --> QE[embed the query]
   end
   E --> CACHE[(IndexedDB<br/>vector cache)]
@@ -115,18 +117,40 @@ Step by step:
    loads `all-MiniLM-L6-v2` (quantized, ~23 MB) from the repo (`vendor/` +
    `models/`), then the browser caches it. Status line: "Setting up smart search…".
    It warms up in the background on load; keyword search answers meanwhile.
-2. **Load the corpus vectors.** The 1,861 doc vectors are precomputed at build
+2. **Load the corpus vectors.** The 1,862 doc vectors are precomputed at build
    time (`build-vectors.py`) and shipped as `vectors.f32`, so the browser just
    fetches them - no first-load embedding. They are cached in **IndexedDB** keyed
    to the corpus. If `vectors.f32` is missing or stale, the worker falls back to
-   embedding the corpus in-browser (reporting "Setting up smart search… N/1861").
+   embedding the corpus in-browser (reporting "Setting up smart search… N/1862").
 3. **Query.** Each query is embedded by the same model (in the worker). The main
    thread computes cosine similarity against the cached vectors (normalized, so
-   it's a dot product) and ranks entries above a similarity threshold.
+   it's a dot product), then fuses that ranking with the keyword one (see below).
 4. **Fallback.** While the model warms up, keyword search still answers. If the
    model fails to load, smart search turns itself off and keyword search remains.
 
+### 3. How the two are combined
+
+Smart search does not replace keyword search; the two rankings are fused with
+reciprocal rank fusion, and every entry the keyword matcher accepts is kept
+regardless of its cosine, so a semantic near-miss can never bury an exact match.
+A literal hit always outranks a synonym one - searching `claude` puts Anthropic
+entries above the OpenAI and Gemini entries that share its synonym group - and
+terms are weighted by inverse document frequency, so a common word in a long
+question counts for less than a distinctive one.
+
+**When there are no results.** A cosine floor cannot tell a real query from a
+keyboard mash: `python3 build-vectors.py --probe` scores 30 gibberish strings
+against the corpus and their top match reaches 0.51, higher than the weakest of
+20 genuine queries. So nonsense is caught the only way that works - a query none
+of whose words appear anywhere in the archive returns nothing, rather than the
+twenty least-dissimilar rows. The same applies to a real word the archive has
+never covered, which is the honest answer too.
+
+Results are paginated, 20 to a page (or 50 or 100). The page is part of the URL
+alongside the query, so any page of any search is a link.
+
 **Cost / tradeoffs.** One-time ~23 MB model download (then cached). First-query
 latency is the model load plus a one-time corpus embed; instant after that. The
-there are no third-party runtime dependencies - the library, WASM runtime and
-model are all served from `dig.nibbles.dev` (they add ~42 MB to the repo).
+search stack has no third-party runtime dependency - the library, WASM runtime
+and model are all served from `dig.nibbles.dev` (they add ~42 MB to the repo).
+Only the webfonts are still fetched from Google.
