@@ -121,8 +121,18 @@
   /* ---- results ---- */
   ol{list-style:none; margin:0; padding:0}
   .row{
-    display:grid; grid-template-columns:52px 1fr; gap:14px;
+    display:grid; grid-template-columns:26px 52px 1fr; gap:14px;
     padding:16px 0; border-bottom:1px solid var(--rule);
+  }
+  /* rank within the current result set, not an identifier - kept quiet so the
+     edition number stays the thing you read */
+  .idx{
+    font-family:var(--mono); font-size:11px; color:var(--dim);
+    text-align:right; padding-top:5px; font-variant-numeric:tabular-nums;
+  }
+  @media(max-width:430px){
+    .row{grid-template-columns:20px 44px 1fr; gap:9px}
+    .idx{font-size:10px}
   }
   /* the edition number is the address of everything in this archive */
   .ed{padding-top:1px}
@@ -342,6 +352,9 @@ function indexHay(e) {
     head:  new Set(tokenize(e.heading || '')),
     desc:  new Set(tokenize(e.description || '')),
   };
+  /* how much of the title the matched word accounts for: "Rust" is a more
+     definitive hit for `rust` than a twelve-word headline that mentions it */
+  e._shortness = TITLE_NORM / (TITLE_NORM + e._f.title.size);
   return e;
 }
 function termHit(term, e) {
@@ -363,6 +376,14 @@ function matches(e) {
    MiniLM cosines. Re-derive all of it if the embedding model ever changes;
    `python3 build-vectors.py --probe` prints the distributions these came from. */
 const KW_W = { titleExact:10, titlePrefix:6, tag:5, head:3, desc:2, domain:0.2 };
+/* The field weights above are coarse tiers about one point apart, so a one-word
+   query lands nearly every hit on the same number - "ai" put 43 entries on the
+   top score, and the tiebreak then ordered a whole page by edition. These two
+   continuous signals refine within a tier without ever crossing one, so relevance
+   decides the order and recency stops standing in for it. */
+const TITLE_NORM   = 4;     // title-length normalisation, as BM25 does for fields
+const W_SHORTNESS  = 0.5;   // both weights sum below the ~1.0 gap between tiers
+const W_COVERAGE   = 0.3;
 const SYN_PENALTY  = 0.4;   // a synonym hit is a weaker claim than the word itself
 const LITERAL_TIER = 12;    // exceeds every field weight, so the word the reader
                             // actually typed always outranks a related one - a
@@ -405,22 +426,24 @@ function fieldHit(set, term) {
    an approximation of an approximation, and it is where most of the cost lives */
 function scoreOneWord(word, e, mult, prefix) {
   const f = e._f;
-  let best = 0;
+  let best = 0, hits = 0, inTitle = false;
   if (prefix) {
     const t = fieldHit(f.title, word);
-    if (t) best = t === 1 ? KW_W.titleExact : KW_W.titlePrefix * t;
+    if (t) { best = t === 1 ? KW_W.titleExact : KW_W.titlePrefix * t; inTitle = true; hits++; }
     const d = fieldHit(f.desc, word);
-    if (d) best = Math.max(best, d === 1 ? KW_W.desc : KW_W.desc * d);
+    if (d) { best = Math.max(best, d === 1 ? KW_W.desc : KW_W.desc * d); hits++; }
   } else {
-    if (f.title.has(word)) best = KW_W.titleExact;
-    else if (f.desc.has(word)) best = KW_W.desc;
+    if (f.title.has(word)) { best = KW_W.titleExact; inTitle = true; hits++; }
+    else if (f.desc.has(word)) { best = KW_W.desc; hits++; }
   }
-  if (f.tags.has(word)) best = Math.max(best, KW_W.tag);
-  if (f.head.has(word)) best = Math.max(best, KW_W.head);
+  if (f.tags.has(word)) { best = Math.max(best, KW_W.tag); hits++; }
+  if (f.head.has(word)) { best = Math.max(best, KW_W.head); hits++; }
   /* domain is nearly worthless as a signal - every GitHub entry contains
      "github" - but it stays in the gate so a hostname search still works */
   if (!best && e.domain && e.domain.toLowerCase().includes(word)) best = KW_W.domain;
-  return best * mult;
+  if (!best) return 0;
+  const refine = (inTitle ? W_SHORTNESS * e._shortness : 0) + W_COVERAGE * (hits / 4);
+  return (best + refine) * mult;
 }
 
 /* expand() walks the whole synonym table, so it is resolved once per query term
@@ -481,7 +504,10 @@ const titleExact = (e, terms) => terms.every(t => e._f.title.has(t));
 /* stable order: entries tie on these coarse weights constantly, and without a
    deterministic tiebreak the same query repaints in a different order */
 const byRank = (score) => (a, b) =>
-  (score(b) - score(a)) || (b.timeless - a.timeless) || (b.ed - a.ed) || (a.id - b.id);
+  (score(b) - score(a))
+  || ((b._score || 0) - (a._score || 0))   // a real relevance signal, where we have one
+  || (b.timeless - a.timeless)
+  || (a.id - b.id);                        // stable, and deliberately not edition order
 const chronological = (a, b) =>
   (b.timeless - a.timeless) || (b.ed - a.ed) || (a.id - b.id);
 
@@ -583,7 +609,7 @@ function render() {
     return;
   }
 
-  for (const e of shown) {
+  shown.forEach((e, i) => {
     const li = document.createElement('li');
     li.className = 'row' + (e.kind === 'quote' ? ' quote' : '');
     const titleHtml = e.url
@@ -592,6 +618,7 @@ function render() {
     const attrib = e.attribution ? ` <span style="color:var(--dim)">${esc(e.attribution)}</span>` : '';
     const kindText = esc(e.heading.replace(/[^\p{L}\p{N}\s&'()]/gu, '').trim());
     li.innerHTML = `
+      <div class="idx">${from + i + 1}</div>
       <div class="ed"><a class="ednum" href="${editionUrl[e.ed]}" target="_blank" rel="noopener" title="Open Nibble #${e.ed}">${e.ed}</a><span>${fmt(e.date)}</span></div>
       <div>
         <p class="title">${e.marker ? e.marker + ' ' : ''}${titleHtml}${attrib}</p>
@@ -603,7 +630,7 @@ function render() {
         </div>
       </div>`;
     ol.appendChild(li);
-  }
+  });
   ol.querySelectorAll('.tag').forEach(el =>
     el.onclick = () => { state.tag = el.dataset.t; state.page = 1; render(); scrollToTop(); });
 
@@ -646,6 +673,7 @@ function paintPager(total, pages) {
     if (enabled) b.onclick = () => go(to);
     pagesRow.appendChild(b);
   };
+  step('\u00ab first', 1, state.page > 1, 'First page');
   step('\u2190 prev', state.page - 1, state.page > 1, 'Previous page');
   for (const n of pageWindow(state.page, pages)) {
     if (n === 'gap') {
@@ -662,6 +690,7 @@ function paintPager(total, pages) {
     pagesRow.appendChild(b);
   }
   step('next \u2192', state.page + 1, state.page < pages, 'Next page');
+  step('last \u00bb', pages, state.page < pages, 'Last page');
 
   const per = document.createElement('div');
   per.className = 'per';
