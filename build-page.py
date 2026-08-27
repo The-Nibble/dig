@@ -1,0 +1,223 @@
+"""Merge every source, dedupe, and inline the result into index.html.
+
+Inputs (all committed, none requiring the Substack export):
+  data/nibble.json     <- build-index.py, run by hand when a new edition lands
+  data/discord.json    <- fetch-discord.py, run daily
+  data/link-meta.json  <- enrich-links.py, titles/blurbs for bare links
+
+This is the only script that writes index.html, and it is pure: same inputs,
+same page. That is what lets the daily job rebuild without the archive.
+
+Usage:
+  python3 build-page.py
+  python3 build-page.py --json out.json   # also dump the merged index
+"""
+import gzip, json, os, re, sys
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+
+from taxonomy import KIND_META, TAG_META, canonical, entity, is_furniture, tags_for, tidy_desc
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PAGE = os.path.join(HERE, 'index.html')
+D = os.path.join(HERE, 'data')
+
+
+def load(name, default=None):
+    p = os.path.join(D, name)
+    if not os.path.exists(p):
+        return default
+    return json.load(open(p, encoding='utf-8'))
+
+
+# ---- discord harvest -> entries -------------------------------------------
+# Article hosts, so a shared blog post is filed as a Read rather than a Tool.
+# Everything else defaults to Tool: on this channel a bare link is usually a
+# thing you can go and use.
+READ_HOST = re.compile(
+    r'(^|\.)(medium\.com|substack\.com|dev\.to|hashnode\.(dev|com)|blog\.[\w.-]+|[\w-]+\.blog'
+    r'|nytimes\.com|theverge\.com|wired\.com|arstechnica\.com|theatlantic\.com|newyorker\.com'
+    r'|economist\.com|ft\.com|bloomberg\.com|quantamagazine\.org|aeon\.co|arxiv\.org)$', re.I)
+
+
+def discord_entries(harvest, meta):
+    guild = harvest.get('guildId')
+    chan = harvest.get('channelId')
+    out = []
+    for m in harvest.get('messages', []):
+        date = (m.get('ts') or '')[:10]
+        msg_url = (f'https://discord.com/channels/{guild}/{chan}/{m["id"]}'
+                   if guild and chan else None)
+        # message text minus the urls themselves is the human blurb, when there
+        # is one. Most messages are a bare link, which is why link-meta exists.
+        said = re.sub(r'https?://\S+', '', m.get('content') or '')
+        said = re.sub(r'\s+', ' ', said).strip(' -–—:•|')
+        for u in m['urls']:
+            url = u['url']
+            if is_furniture(url) or not canonical(url):
+                continue
+            key = canonical(url)
+            mm = meta.get(key) or {}
+            host, repo = entity(url)
+            title = (u.get('text') or mm.get('title') or '').strip()
+            if not title:
+                title = name_from_url(url, host, repo)
+            # "good thread" is an aside, not a description: a short remark
+            # loses to the real blurb, and only stands in when there is none
+            said_desc = tidy_desc(said)
+            desc = (said_desc if len(said_desc) >= 40 else '') \
+                or (mm.get('description') or '') or said_desc
+            kind = 'read' if (host and READ_HOST.search(host)) else 'tool'
+            e = {'src': 'discord', 'kind': kind, 'timeless': True,
+                 'heading': 'Discord', 'title': title[:200], 'description': desc[:500],
+                 'url': url, 'date': date, 'msg': m['id']}
+            if msg_url: e['msgUrl'] = msg_url
+            if m.get('author'): e['by'] = m['author']
+            if host: e['domain'] = host
+            if repo: e['repo'] = repo
+            e['tags'] = tags_for(kind, e['title'], e['description'], host, url, repo) + ['discord']
+            out.append(e)
+    return out
+
+
+def name_from_url(url, host, repo):
+    if repo: return repo.split('/')[-1]
+    seg = [s for s in re.sub(r'^https?://[^/]+', '', url).split('?')[0].split('/') if s]
+    if seg:
+        s = re.sub(r'\.(html?|php|aspx?|md|pdf)$', '', seg[-1])
+        s = re.sub(r'[-_+]+', ' ', s).strip()
+        if s and not re.fullmatch(r'[\d\W]+', s) and len(s) > 2:
+            return s[:1].upper() + s[1:]
+    return host or url
+
+
+# ---- dedupe ---------------------------------------------------------------
+# The same link shows up several times: twice in the newsletter years apart,
+# in Discord and then in an edition, or three times in Discord in one week.
+# One entry survives; every other sighting is folded into `also`, which is what
+# makes "when did we first talk about X" answerable across sources.
+def occurrence(e):
+    o = {'src': e['src'], 'date': e.get('date')}
+    if e.get('ed'): o['ed'] = e['ed']
+    if e.get('msgUrl'): o['msgUrl'] = e['msgUrl']
+    if e.get('by'): o['by'] = e['by']
+    return o
+
+
+def richness(e):
+    """Which sighting should be the one on the page."""
+    return (
+        1 if e['src'] == 'nibble' else 0,          # curated copy wins outright
+        len(e.get('descriptionClean') or e.get('description') or ''),
+        1 if e.get('title') and not e['title'].startswith('http') else 0,
+    )
+
+
+def dedupe(entries):
+    groups = defaultdict(list)
+    singles = []
+    for e in entries:
+        k = canonical(e['url']) if e.get('url') else None
+        if k: groups[k].append(e)
+        else: singles.append(e)      # quotes and other url-less entries
+
+    merged = []
+    collapsed = 0
+    for k, g in groups.items():
+        g.sort(key=lambda e: (e.get('date') or '', e.get('id') or 0))
+        best = max(g, key=richness)
+        keep = dict(best)
+        if len(g) > 1:
+            collapsed += len(g) - 1
+            keep['also'] = [occurrence(e) for e in g if e is not best]
+            # tags are a union: a Discord sighting still earns the discord chip
+            tags = list(keep['tags'])
+            for e in g:
+                for t in e['tags']:
+                    if t not in tags: tags.append(t)
+            keep['tags'] = tags
+            # the honest first-seen date is the earliest sighting anywhere
+            keep['first'] = min(e['date'] for e in g if e.get('date'))
+            keep['last'] = max(e['date'] for e in g if e.get('date'))
+        merged.append(keep)
+    return merged + singles, collapsed
+
+
+def main():
+    nib = load('nibble.json')
+    if not nib:
+        raise SystemExit('no data/nibble.json - run build-index.py first')
+    harvest = load('discord.json', {'messages': []})
+    meta = load('link-meta.json', {})
+
+    entries = list(nib['entries'])
+    dis = discord_entries(harvest, meta)
+    n_nib, n_dis = len(entries), len(dis)
+    entries, collapsed = dedupe(entries + dis)
+
+    # nibble first in original order, then discord by message id: new links
+    # always land at the end, so vectors.f32 only ever grows at the tail
+    entries.sort(key=lambda e: (0, e.get('id') or 0) if e['src'] == 'nibble'
+                 else (1, int(e.get('msg') or 0)))
+    for i, e in enumerate(entries, 1):
+        e['id'] = i
+        e.setdefault('first', e.get('date'))
+        e.setdefault('last', e.get('date'))
+
+    # tag counts only; first/last is computed in the page from the live hit set,
+    # so a chip and a free-text search can never disagree about a span
+    agg = Counter(t for e in entries for t in e['tags'])
+    tags = [{'slug': t, 'label': TAG_META.get(t, (t.title(), 'topic'))[0],
+             'facet': TAG_META.get(t, (t.title(), 'topic'))[1], 'count': c}
+            for t, c in agg.items()]
+    tags.sort(key=lambda x: (-x['count'], x['slug']))
+
+    out = {'generatedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+           'editions': nib['editions'], 'entries': entries, 'tags': tags,
+           'sources': {'nibble': sum(1 for e in entries if e['src'] == 'nibble'),
+                       'discord': sum(1 for e in entries if e['src'] == 'discord')},
+           'entityCount': len({e.get('url') and canonical(e['url']) or ('quote::' + e['title'])
+                               for e in entries})}
+    blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
+
+    lines = open(PAGE, encoding='utf-8').read().split('\n')
+    for i, l in enumerate(lines):
+        if l.startswith('const BOOTSTRAP ='):
+            lines[i] = 'const BOOTSTRAP = ' + blob + ';'
+            open(PAGE, 'w', encoding='utf-8').write('\n'.join(lines))
+            break
+    else:
+        raise SystemExit("could not find 'const BOOTSTRAP =' line in index.html")
+
+    if '--json' in sys.argv:
+        p = sys.argv[sys.argv.index('--json') + 1]
+        open(p, 'w', encoding='utf-8').write(blob)
+
+    def pr(*a): print(*a, file=sys.stderr)
+    page_bytes = open(PAGE, 'rb').read()
+    pr("\n=== MERGE REPORT ===")
+    if harvest.get('fixture'):
+        pr("! data/discord.json is SYNTHETIC (make-fixture.py). Do not commit this page.")
+    pr(f"in:  nibble {n_nib} + discord {n_dis} = {n_nib + n_dis}")
+    pr(f"out: {len(entries)} entries  ({collapsed} duplicate sightings folded in)")
+    pr(f"     {out['sources']['nibble']} shown from the newsletter, "
+       f"{out['sources']['discord']} Discord-only")
+    both = [e for e in entries if e.get('also') and
+            {o['src'] for o in e['also']} | {e['src']} == {'nibble', 'discord'}]
+    pr(f"     {len(both)} links seen in BOTH the newsletter and Discord")
+    early = [e for e in both if e['first'] < (e.get('date') or '')]
+    pr(f"     {len(early)} of those surfaced in Discord before the edition ran")
+    pr(f"by kind: {dict(Counter(e['kind'] for e in entries))}")
+    pr(f"tags: {len(tags)}   entities: {out['entityCount']}")
+    pr(f"index data: {len(blob.encode())/1024:.1f} KB  |  index.html: {len(page_bytes)/1024:.1f} KB "
+       f"({len(gzip.compress(page_bytes))/1024:.1f} KB gzipped)")
+    vec = os.path.join(HERE, 'vectors.f32')
+    if os.path.exists(vec):
+        rows = os.path.getsize(vec) // (384 * 4)
+        if rows != len(entries):
+            pr(f"\n! vectors.f32 holds {rows} rows, index now has {len(entries)}."
+               f"\n  The page falls back to embedding in-browser until you run build-vectors.py.")
+
+
+if __name__ == '__main__':
+    main()

@@ -2,8 +2,9 @@
 
 A searchable index of [The Nibble](https://nibbles.dev) - the timeless bits
 (tools, TILs, reads, quotes) pulled out of every edition of the newsletter, with
-the week's news left behind. Answers "when did we first and last talk about X"
-for any tag or search term.
+the week's news left behind, **plus the links shared in the Discord #nibble
+channel**. Answers "when did we first and last talk about X" for any tag or
+search term - across both sources, deduped.
 
 Live at **https://dig.nibbles.dev**
 
@@ -19,32 +20,91 @@ Even the optional smart-search model is vendored into the repo (`models/` and
 at runtime. The two webfonts are the one exception - they still come from Google
 Fonts.
 
-## Regenerating the index
+## The pipeline
 
-The data is produced from a Substack export by a **heuristic** parser
-(`build-index.py`) - deterministic regex, best-effort tagging. It is *not* a
-canonical system of record; a future canonical parser can overwrite the inlined
-data wholesale.
+Two sources feed one page. They are built by separate scripts on purpose: the
+Substack export is a manual download that only exists on a laptop, while Discord
+refreshes daily in CI and has to rebuild the page **without** it.
 
-```sh
-# 1. Substack -> Settings -> Exports -> download, unzip to ~/Downloads/nibble-archive/
-#    (expects posts/ of {id}.{slug}.html + posts.csv)
-# 2. inline the fresh index straight into index.html:
-python3 build-index.py
-
-# optional: also write the raw index as JSON
-python3 build-index.py --json index.json
+```
+~/Downloads/nibble-archive  --build-index.py-->  data/nibble.json  ---.
+                                                                      |
+Discord #nibble  --fetch-discord.py-->  data/discord.json  ---.       |
+                                             |                |       |
+                        enrich-links.py -->  data/link-meta.json      |
+                                                              |       |
+                                     build-page.py  <---------'-------'
+                                             |
+                                     index.html (BOOTSTRAP inlined)
 ```
 
-`build-index.py` rewrites the `const BOOTSTRAP = ...` line in `index.html` in
-place, so the page stays self-contained.
+`build-page.py` is the only script that writes `index.html`, and it is pure:
+same inputs, same page. Everything under `data/` is committed, which is what
+lets the daily job rebuild without the Substack archive.
 
-If the data changed, also regenerate the precomputed smart-search vectors (needs
-`onnxruntime`, `tokenizers`, `numpy`):
+### Daily, in CI
+
+`.github/workflows/daily-discord.yml` runs at 04:17 UTC: harvest new messages,
+fetch metadata for links it has never seen, rebuild, commit. It needs two repo
+secrets:
+
+| secret | what |
+| --- | --- |
+| `DISCORD_TOKEN` | a **bot** token, with the bot in the server and `Read Message History` on the channel |
+| `DISCORD_CHANNEL_ID` | the #nibble channel id (right-click the channel -> Copy Channel ID, with Developer Mode on) |
+
+A user (self-bot) token also works against the same endpoint but violates
+Discord's ToS and risks the account; a bot token is free, scoped read-only, and
+survives password changes.
+
+### By hand
+
+```sh
+# newsletter side - only when a new edition lands
+# (Substack -> Settings -> Exports -> unzip to ~/Downloads/nibble-archive/)
+python3 build-index.py
+
+# discord side
+export DISCORD_TOKEN=... DISCORD_CHANNEL_ID=...
+python3 fetch-discord.py --backfill   # first run: walk the whole history
+python3 fetch-discord.py              # after that: only what is new
+python3 enrich-links.py               # titles + blurbs for bare links
+
+# merge, dedupe, inline
+python3 build-page.py
+```
+
+If the entry count changed, regenerate the precomputed smart-search vectors
+(needs `onnxruntime`, `tokenizers`, `numpy`):
 
 ```sh
 python3 build-vectors.py   # embeds the corpus with the vendored model -> vectors.f32
 ```
+
+This is not urgent: the page checks `vectors.f32` against the corpus size and
+falls back to embedding in the browser when they disagree, so smart search keeps
+working - just slower on first load. CI rebuilds vectors weekly rather than
+daily, because the file is 2.7 MB and rewritten whole every time.
+
+## Dedupe
+
+Most Discord links are duplicates - of each other, or of something that later
+ran in an edition. `taxonomy.canonical()` reduces a url to a dedupe key: drops
+tracking params, unifies `youtu.be` with `youtube.com/watch`, collapses any
+GitHub url to its `owner/repo`. Addressing params are **kept**, so the videos on
+`youtube.com/watch` and the threads on `news.ycombinator.com/item` stay distinct
+- a false split leaves a visible duplicate, a false merge silently deletes an
+entry, and splitting is the safer failure.
+
+One row survives per key. The newsletter copy wins the display, since it carries
+a hand-written description; every other sighting folds into `also`, and the
+entry's `first` date becomes the earliest sighting **anywhere**. That is what
+makes the row read `#100 · first in Discord, Nov 2024` - the archive can now
+show that the channel found something months before the edition ran it.
+
+Descriptions come from the message text when someone said something substantial,
+and from the link's own metadata otherwise (OpenGraph, plus the GitHub, YouTube,
+Wikipedia and Hacker News APIs where they exist).
 
 ## What it does / doesn't
 

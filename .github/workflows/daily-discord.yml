@@ -1,0 +1,65 @@
+name: Index new Discord links
+
+# The Substack half of the index is a manual export that only exists on a
+# laptop, so this job never runs build-index.py. It reads the committed
+# data/nibble.json, adds whatever Discord posted since yesterday, and rebuilds
+# the page from both.
+on:
+  schedule:
+    - cron: '17 4 * * *'      # 04:17 UTC daily, off the hour to dodge the rush
+  workflow_dispatch:           # and on demand, from the Actions tab
+
+concurrency:
+  group: index
+  cancel-in-progress: false    # never let two runs race on the same commit
+
+permissions:
+  contents: write
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Harvest new messages
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+        run: python3 fetch-discord.py
+
+      - name: Fetch titles and blurbs for new links
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 enrich-links.py --limit 200
+
+      - name: Rebuild the page
+        run: python3 build-page.py
+
+      # vectors.f32 is 2.7 MB and rewritten whole on every change, so a daily
+      # commit of it would add roughly a gigabyte of git history a year. The
+      # page falls back to embedding in-browser when the row count does not
+      # match, so smart search still works between weekly rebuilds.
+      - name: Rebuild smart-search vectors (Sundays, or on demand)
+        run: |
+          if [ "$(date -u +%u)" != "7" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "not Sunday - leaving vectors.f32 alone"; exit 0
+          fi
+          pip install --quiet onnxruntime tokenizers numpy
+          python3 build-vectors.py
+
+      - name: Commit
+        run: |
+          git config user.name  'nibble-indexer'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/ index.html vectors.f32 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "nothing new today"
+          else
+            git commit -m "Index new Discord links ($(date -u +%Y-%m-%d))"
+            git push
+          fi
