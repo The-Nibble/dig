@@ -10,8 +10,12 @@ derived later (enrich-links.py, build-page.py), so a re-derivation never needs
 the network and a bad heuristic is never baked into the stored data.
 
 Env:
-  DISCORD_TOKEN       bot token (recommended) or user token
+  DISCORD_TOKEN       the token
   DISCORD_CHANNEL_ID  the #nibble channel id
+  DISCORD_TOKEN_TYPE  'bot' (default) or 'user'. A user token authenticates a
+                      person rather than an app: it works against this same
+                      endpoint, but self-botting breaks Discord's ToS and the
+                      account carries the risk. A bot token is free and scoped.
 
 Usage:
   python3 fetch-discord.py              # incremental: newest -> forward
@@ -28,6 +32,10 @@ API = 'https://discord.com/api/v10'
 
 TOKEN = os.environ.get('DISCORD_TOKEN', '').strip()
 CHANNEL = os.environ.get('DISCORD_CHANNEL_ID', '').strip()
+# A bot token is sent as "Bot <token>", a user token bare. They are not
+# distinguishable by shape, so the type is declared rather than guessed.
+TOKEN_TYPE = os.environ.get('DISCORD_TOKEN_TYPE', 'bot').strip().lower()
+AUTH = TOKEN if TOKEN_TYPE == 'user' else 'Bot ' + TOKEN
 
 # bare urls, plus <suppressed> ones; markdown links are pulled out separately so
 # the link text can seed a title
@@ -37,7 +45,7 @@ MD_LINK_RE = re.compile(r'\[([^\]]{1,200})\]\((https?://[^\s)]+)\)')
 
 def api(path):
     req = urllib.request.Request(API + path, headers={
-        'Authorization': TOKEN if TOKEN.lower().startswith('bot ') else 'Bot ' + TOKEN,
+        'Authorization': AUTH,
         'User-Agent': 'dig-nibble-indexer (+https://dig.nibbles.dev)',
     })
     for attempt in range(6):
@@ -54,8 +62,9 @@ def api(path):
                 time.sleep(wait + 0.25); continue
             if e.code in (401, 403):
                 raise SystemExit(
-                    f"Discord refused the token ({e.code}). A bot token needs the bot to be in "
-                    f"the server with 'Read Message History' on this channel.\n{body}")
+                    f"Discord refused the token ({e.code}), sent as {TOKEN_TYPE!r}. A bot token "
+                    f"needs the bot in the server with 'Read Message History' on this channel; "
+                    f"a user token needs DISCORD_TOKEN_TYPE=user.\n{body}")
             if 500 <= e.code < 600:
                 time.sleep(2 ** attempt); continue
             raise SystemExit(f"Discord API {e.code} on {path}: {body}")

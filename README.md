@@ -53,9 +53,10 @@ secrets:
 | `DISCORD_TOKEN` | a **bot** token, with the bot in the server and `Read Message History` on the channel |
 | `DISCORD_CHANNEL_ID` | the #nibble channel id (right-click the channel -> Copy Channel ID, with Developer Mode on) |
 
-A user (self-bot) token also works against the same endpoint but violates
-Discord's ToS and risks the account; a bot token is free, scoped read-only, and
-survives password changes.
+A personal account token works against the same endpoint - set
+`DISCORD_TOKEN_TYPE=user` - but self-botting breaks Discord's ToS and the risk
+lands on the account. A bot token is free, scoped read-only, and survives a
+password change, which a user token does not.
 
 ### By hand
 
@@ -65,7 +66,7 @@ survives password changes.
 python3 build-index.py
 
 # discord side
-export DISCORD_TOKEN=... DISCORD_CHANNEL_ID=...
+export DISCORD_TOKEN=... DISCORD_CHANNEL_ID=...   # DISCORD_TOKEN_TYPE=user if personal
 python3 fetch-discord.py --backfill   # first run: walk the whole history
 python3 fetch-discord.py              # after that: only what is new
 python3 enrich-links.py               # titles + blurbs for bare links
@@ -73,6 +74,10 @@ python3 enrich-links.py               # titles + blurbs for bare links
 # merge, dedupe, inline
 python3 build-page.py
 ```
+
+No token to hand? `python3 make-fixture.py` writes a synthetic harvest that
+exercises the whole pipeline - cross-source duplicates, short links, tracking
+params, chat furniture - so the merge can be tested end to end offline.
 
 If the entry count changed, regenerate the precomputed smart-search vectors
 (needs `onnxruntime`, `tokenizers`, `numpy`):
