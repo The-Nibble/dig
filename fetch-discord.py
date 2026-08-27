@@ -1,8 +1,9 @@
-"""Harvest links from the Discord #nibble channel -> data/discord.json.
+"""Harvest links from the Discord channels -> data/discord.json.
 
-Incremental: every run asks Discord only for messages *after* the newest one
-already harvested, so the daily job costs a couple of API calls even though the
-channel history is years long.
+Incremental, and per channel: every run asks Discord only for messages *after*
+the newest one already harvested in that channel, so the daily job costs a
+couple of API calls per channel even though the histories are years long. Each
+channel keeps its own cursor, so adding a channel backfills only that one.
 
 What lands in data/discord.json is the raw harvest and nothing else - message
 id, timestamp, author, text, urls. Titles, descriptions, tags and dedupe are all
@@ -10,19 +11,22 @@ derived later (enrich-links.py, build-page.py), so a re-derivation never needs
 the network and a bad heuristic is never baked into the stored data.
 
 Env:
-  DISCORD_TOKEN       the token
-  DISCORD_CHANNEL_ID  the #nibble channel id
+  DISCORD_TOKEN        the token
+  DISCORD_CHANNEL_IDS  comma-separated channel ids (DISCORD_CHANNEL_ID also
+                       works for a single one)
   DISCORD_TOKEN_TYPE  'bot' (default) or 'user'. A user token authenticates a
                       person rather than an app: it works against this same
                       endpoint, but self-botting breaks Discord's ToS and the
                       account carries the risk. A bot token is free and scoped.
 
 Usage:
-  python3 fetch-discord.py              # incremental: newest -> forward
-  python3 fetch-discord.py --backfill   # walk the whole history, oldest first
-  python3 fetch-discord.py --limit 500  # stop after N new messages (testing)
+  python3 fetch-discord.py                  # incremental, every channel
+  python3 fetch-discord.py --backfill       # walk whole histories, oldest first
+  python3 fetch-discord.py --only 123,456   # restrict to these channels
+  python3 fetch-discord.py --limit 500      # stop after N new messages per channel
 """
 import json, os, re, sys, time, urllib.request, urllib.error
+from collections import Counter
 
 from taxonomy import is_furniture
 
@@ -31,7 +35,9 @@ STORE = os.path.join(HERE, 'data', 'discord.json')
 API = 'https://discord.com/api/v10'
 
 TOKEN = os.environ.get('DISCORD_TOKEN', '').strip()
-CHANNEL = os.environ.get('DISCORD_CHANNEL_ID', '').strip()
+CHANNELS = [c.strip() for c in
+            (os.environ.get('DISCORD_CHANNEL_IDS') or os.environ.get('DISCORD_CHANNEL_ID') or '')
+            .replace('\n', ',').split(',') if c.strip()]
 # A bot token is sent as "Bot <token>", a user token bare. They are not
 # distinguishable by shape, so the type is declared rather than guessed.
 TOKEN_TYPE = os.environ.get('DISCORD_TOKEN_TYPE', 'bot').strip().lower()
@@ -90,28 +96,36 @@ def extract(content):
 
 
 def load():
-    if os.path.exists(STORE):
-        return json.load(open(STORE, encoding='utf-8'))
-    return {'channelId': CHANNEL, 'lastMessageId': None, 'messages': []}
+    """The harvest, migrated forward from the single-channel shape if needed."""
+    if not os.path.exists(STORE):
+        return {'guildId': None, 'channels': {}, 'messages': []}
+    st = json.load(open(STORE, encoding='utf-8'))
+    if 'channels' not in st:                       # pre-multi-channel harvest
+        ch = st.get('channelId')
+        st['channels'] = {ch: {'name': None, 'lastMessageId': st.get('lastMessageId')}} if ch else {}
+        for m in st.get('messages', []):
+            m.setdefault('ch', ch)
+        st.pop('channelId', None); st.pop('lastMessageId', None)
+    return st
 
 
-def main():
-    if not TOKEN or not CHANNEL:
-        raise SystemExit('set DISCORD_TOKEN and DISCORD_CHANNEL_ID')
-    args = sys.argv[1:]
-    backfill = '--backfill' in args
-    limit = int(args[args.index('--limit') + 1]) if '--limit' in args else None
+def harvest_channel(cid, store, known, backfill, limit):
+    """Walk one channel forward from its own cursor. Returns messages kept."""
+    meta = store['channels'].setdefault(cid, {'name': None, 'lastMessageId': None})
+    try:
+        info = api(f'/channels/{cid}')
+        meta['name'] = info.get('name') or meta.get('name')
+        store['guildId'] = store.get('guildId') or info.get('guild_id')
+    except SystemExit:
+        raise
+    except Exception:
+        pass                                       # a name is a nicety, not a blocker
 
-    store = load()
-    store['channelId'] = CHANNEL
-    known = {m['id'] for m in store['messages']}
-
-    # 'after' walks forward from the newest we hold; a backfill starts from zero
-    # and walks the entire history the same way, so both paths share this loop.
-    cursor = None if backfill else store.get('lastMessageId')
+    label = '#' + (meta.get('name') or cid)
+    cursor = None if backfill else meta.get('lastMessageId')
     fetched = kept = 0
     while True:
-        q = f'/channels/{CHANNEL}/messages?limit=100'
+        q = f'/channels/{cid}/messages?limit=100'
         q += f'&after={cursor}' if cursor else '&after=0'
         batch = api(q)
         if not batch:
@@ -132,7 +146,7 @@ def main():
                 continue
             a = m.get('author') or {}
             store['messages'].append({
-                'id': m['id'],
+                'id': m['id'], 'ch': cid,
                 'ts': m.get('timestamp'),
                 'author': a.get('global_name') or a.get('username'),
                 'authorId': a.get('id'),
@@ -140,23 +154,50 @@ def main():
                 'urls': [{'url': u, 'text': t} for u, t in urls],
             })
             known.add(m['id']); kept += 1
-        print(f"\r  fetched {fetched} messages, {kept} with links", end='', file=sys.stderr)
+        print(f"\r  {label}: fetched {fetched}, {kept} with links", end='', file=sys.stderr)
         if limit and kept >= limit:
             break
         if len(batch) < 100:
             break
-    print(file=sys.stderr)
+    # the cursor advances past every message SEEN, not every message kept, or
+    # a run of link-free chat would be re-fetched forever
+    if cursor:
+        meta['lastMessageId'] = max(cursor, meta.get('lastMessageId') or '0', key=int)
+    print(f"\r  {label}: fetched {fetched}, {kept} with links", file=sys.stderr)
+    return kept
+
+
+def main():
+    if not TOKEN or not CHANNELS:
+        raise SystemExit('set DISCORD_TOKEN and DISCORD_CHANNEL_IDS')
+    args = sys.argv[1:]
+    backfill = '--backfill' in args
+    limit = int(args[args.index('--limit') + 1]) if '--limit' in args else None
+    only = set(args[args.index('--only') + 1].split(',')) if '--only' in args else None
+
+    store = load()
+    known = {m['id'] for m in store['messages']}
+    todo = [c for c in CHANNELS if not only or c in only]
+    if not todo:
+        raise SystemExit(f'--only matched none of {CHANNELS}')
+
+    total = 0
+    for cid in todo:
+        total += harvest_channel(cid, store, known, backfill, limit)
 
     store['messages'].sort(key=lambda m: int(m['id']))
-    if store['messages']:
-        store['lastMessageId'] = store['messages'][-1]['id']
     os.makedirs(os.path.dirname(STORE), exist_ok=True)
     with open(STORE, 'w', encoding='utf-8') as fh:
         json.dump(store, fh, ensure_ascii=False, indent=1)
 
     nlinks = sum(len(m['urls']) for m in store['messages'])
+    per = Counter(m.get('ch') for m in store['messages'])
     print(f"\n=== DISCORD HARVEST ===", file=sys.stderr)
-    print(f"new messages with links this run: {kept}", file=sys.stderr)
+    print(f"channels: {len(store['channels'])}   new messages with links: {total}",
+          file=sys.stderr)
+    for cid, meta in store['channels'].items():
+        print(f"  #{meta.get('name') or cid:<24} {per.get(cid, 0):5d} messages held",
+              file=sys.stderr)
     print(f"stored: {len(store['messages'])} messages, {nlinks} links", file=sys.stderr)
     print(f"wrote {STORE} ({os.path.getsize(STORE)/1024:.1f} KB)", file=sys.stderr)
     print(f"\nnext: python3 enrich-links.py && python3 build-page.py", file=sys.stderr)

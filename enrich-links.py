@@ -28,6 +28,15 @@ HARVEST = os.path.join(HERE, 'data', 'discord.json')
 
 UA = ('Mozilla/5.0 (compatible; dig-nibble-indexer/1.0; +https://dig.nibbles.dev) '
       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36')
+# Strings that are never a description of anything - consent walls, login
+# prompts, JS warnings. A page that only offers these is better left blank:
+# the title still carries the entry, and an empty blurb lets the message text
+# stand in.
+BOILERPLATE = re.compile(
+    r'log ?in or sign ?up|sign in to |create an account|enable javascript'
+    r'|subscribe to (continue|read)|we use cookies|are you a robot'
+    r'|access denied|just a moment|checking your browser|please verify', re.I)
+
 TIMEOUT = 15
 MAX_BYTES = 300_000        # meta tags live in <head>; no need for the whole page
 RETRY_AFTER_DAYS = 30      # a dead link stays dead; check again next month
@@ -181,7 +190,10 @@ def main():
             title, desc = fetch_meta(url)
             rec['ok'] = True
             rec['title'] = re.sub(r'\s+', ' ', title).strip()[:160] if title else None
-            rec['description'] = tidy_desc(re.sub(r'\s+', ' ', desc).strip()[:400]) if desc else None
+            desc = re.sub(r'\s+', ' ', desc).strip() if desc else ''
+            if BOILERPLATE.search(desc[:200]):
+                desc = ''
+            rec['description'] = tidy_desc(desc[:400]) or None
             ok += 1
         except Exception as e:
             rec['ok'] = False

@@ -29,7 +29,8 @@ jobs:
       - name: Harvest new messages
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          DISCORD_CHANNEL_IDS: ${{ secrets.DISCORD_CHANNEL_IDS }}
+          DISCORD_TOKEN_TYPE: ${{ vars.DISCORD_TOKEN_TYPE || 'bot' }}
         run: python3 fetch-discord.py
 
       - name: Fetch titles and blurbs for new links

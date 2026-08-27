@@ -2,8 +2,9 @@
 
 Builds a harvest that exercises the cases that actually break things: the same
 link arriving in Discord and in the newsletter, a youtu.be short link against a
-full watch url, tracking params, the same link posted twice by two people, chat
-furniture that must be dropped, and messages with and without a human blurb.
+full watch url, tracking params, the same link in two different channels, chat
+furniture that must be dropped, messages with and without a human blurb, and
+channel names that should override the kind heuristic.
 
     python3 make-fixture.py && python3 enrich-links.py && python3 build-page.py
 
@@ -29,13 +30,18 @@ entries = [e for e in json.load(open(nib_path, encoding='utf-8'))['entries']
 
 rng = random.Random(11)
 people = ['aashutosh', 'kunal', 'shreya', 'devansh']
+CHANNELS = {'900000000000000002': 'nibble',
+            '900000000000000003': 'tools',
+            '900000000000000004': 'reads'}
+CIDS = list(CHANNELS)
 msgs, mid = [], 1050000000000000000
 
 
-def add(url, text, when, author):
+def add(url, text, when, author, cid=None):
     global mid
     mid += rng.randint(10**6, 10**9)
-    msgs.append({'id': str(mid), 'ts': when + 'T09:14:00.000000+00:00', 'author': author,
+    msgs.append({'id': str(mid), 'ch': cid or rng.choice(CIDS),
+                 'ts': when + 'T09:14:00.000000+00:00', 'author': author,
                  'authorId': '1', 'content': text, 'urls': [{'url': url, 'text': None}]})
 
 
@@ -54,7 +60,7 @@ for e in rng.sample(entries, 20):
 # links only ever seen in the channel
 only = [
     ('https://github.com/astral-sh/uv', 'crazy fast pip replacement, written in rust'),
-    ('https://github.com/astral-sh/uv', ''),                    # same link twice
+    ('https://github.com/astral-sh/uv', ''),                    # same link, another channel
     ('https://zed.dev/', ''),
     ('https://bun.sh/', 'bun 1.2 is out'),
     ('https://www.youtube.com/watch?v=dQw4w9WgXcQ', ''),
@@ -71,12 +77,17 @@ only = [
 for url, text in only:
     add(url, text, f'2026-0{rng.randint(1, 8)}-{rng.randint(10, 28)}', rng.choice(people))
 
+# a link in #reads must be filed as a Read even though it is a github.io host
+add('https://simonwillison.net/2024/Dec/31/llms-in-2024/', 'best writeup of the year',
+    '2026-02-14', 'shreya', cid='900000000000000004')
+
 msgs.sort(key=lambda m: int(m['id']))
 os.makedirs(os.path.dirname(STORE), exist_ok=True)
 json.dump({'fixture': True, 'guildId': '900000000000000001',
-           'channelId': '900000000000000002', 'lastMessageId': msgs[-1]['id'],
+           'channels': {cid: {'name': n, 'lastMessageId': msgs[-1]['id']}
+                        for cid, n in CHANNELS.items()},
            'messages': msgs},
           open(STORE, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-print(f"wrote {STORE}: {len(msgs)} synthetic messages, "
+print(f"wrote {STORE}: {len(msgs)} synthetic messages across {len(CHANNELS)} channels, "
       f"{sum(len(m['urls']) for m in msgs)} links", file=sys.stderr)
 print("next: python3 enrich-links.py && python3 build-page.py", file=sys.stderr)

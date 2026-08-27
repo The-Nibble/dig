@@ -2,8 +2,8 @@
 
 A searchable index of [The Nibble](https://nibbles.dev) - the timeless bits
 (tools, TILs, reads, quotes) pulled out of every edition of the newsletter, with
-the week's news left behind, **plus the links shared in the Discord #nibble
-channel**. Answers "when did we first and last talk about X" for any tag or
+the week's news left behind, **plus the links shared across the Discord
+channels**. Answers "when did we first and last talk about X" for any tag or
 search term - across both sources, deduped.
 
 Live at **https://dig.nibbles.dev**
@@ -29,7 +29,7 @@ refreshes daily in CI and has to rebuild the page **without** it.
 ```
 ~/Downloads/nibble-archive  --build-index.py-->  data/nibble.json  ---.
                                                                       |
-Discord #nibble  --fetch-discord.py-->  data/discord.json  ---.       |
+Discord channels --fetch-discord.py-->  data/discord.json  ---.       |
                                              |                |       |
                         enrich-links.py -->  data/link-meta.json      |
                                                               |       |
@@ -51,7 +51,7 @@ secrets:
 | secret | what |
 | --- | --- |
 | `DISCORD_TOKEN` | a **bot** token, with the bot in the server and `Read Message History` on the channel |
-| `DISCORD_CHANNEL_ID` | the #nibble channel id (right-click the channel -> Copy Channel ID, with Developer Mode on) |
+| `DISCORD_CHANNEL_IDS` | comma-separated channel ids (right-click a channel -> Copy Channel ID, with Developer Mode on) |
 
 A personal account token works against the same endpoint - set
 `DISCORD_TOKEN_TYPE=user` - but self-botting breaks Discord's ToS and the risk
@@ -66,10 +66,11 @@ password change, which a user token does not.
 python3 build-index.py
 
 # discord side
-export DISCORD_TOKEN=... DISCORD_CHANNEL_ID=...   # DISCORD_TOKEN_TYPE=user if personal
-python3 fetch-discord.py --backfill   # first run: walk the whole history
-python3 fetch-discord.py              # after that: only what is new
-python3 enrich-links.py               # titles + blurbs for bare links
+export DISCORD_TOKEN=... DISCORD_CHANNEL_IDS=111,222,333   # TYPE=user if personal
+python3 fetch-discord.py --backfill        # first run: walk every history
+python3 fetch-discord.py                   # after that: only what is new
+python3 fetch-discord.py --only 444        # just-added channel, backfill one
+python3 enrich-links.py                    # titles + blurbs for bare links
 
 # merge, dedupe, inline
 python3 build-page.py
@@ -90,6 +91,18 @@ This is not urgent: the page checks `vectors.f32` against the corpus size and
 falls back to embedding in the browser when they disagree, so smart search keeps
 working - just slower on first load. CI rebuilds vectors weekly rather than
 daily, because the file is 2.7 MB and rewritten whole every time.
+
+### Channels
+
+Each channel keeps its own cursor, so adding one to `DISCORD_CHANNEL_IDS`
+backfills only that channel and leaves the rest untouched. The channel name
+becomes the row's label (where an edition entry shows its section) and is part
+of the search haystack, so `#reads` is a searchable term. A channel whose name
+says what it holds also overrides the kind heuristic - a link in `#reads` is
+filed as a Read even when it points at GitHub.
+
+Dedupe runs across channels as well as across sources: the same link in
+`#tools` and `#reads` is one entry, and the row says `also in #tools`.
 
 ## Dedupe
 

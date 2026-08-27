@@ -40,14 +40,30 @@ READ_HOST = re.compile(
     r'|economist\.com|ft\.com|bloomberg\.com|quantamagazine\.org|aeon\.co|arxiv\.org)$', re.I)
 
 
+# A channel whose name says what it is overrides the host heuristic: a link in
+# #reads is a read even when it lives on github.io.
+CHANNEL_KIND = [(re.compile(r'read|article|blog|longform|paper', re.I), 'read'),
+                (re.compile(r'til|learn|today-i', re.I), 'til'),
+                (re.compile(r'tool|build|ship|oss|project', re.I), 'tool')]
+
+
+def kind_for(chan_name, host):
+    for rx, k in CHANNEL_KIND:
+        if chan_name and rx.search(chan_name):
+            return k
+    return 'read' if (host and READ_HOST.search(host)) else 'tool'
+
+
 def discord_entries(harvest, meta):
     guild = harvest.get('guildId')
-    chan = harvest.get('channelId')
+    channels = harvest.get('channels') or {}
     out = []
     for m in harvest.get('messages', []):
+        cid = m.get('ch')
+        chan = (channels.get(cid) or {}).get('name')
         date = (m.get('ts') or '')[:10]
-        msg_url = (f'https://discord.com/channels/{guild}/{chan}/{m["id"]}'
-                   if guild and chan else None)
+        msg_url = (f'https://discord.com/channels/{guild}/{cid}/{m["id"]}'
+                   if guild and cid else None)
         # message text minus the urls themselves is the human blurb, when there
         # is one. Most messages are a bare link, which is why link-meta exists.
         said = re.sub(r'https?://\S+', '', m.get('content') or '')
@@ -67,10 +83,15 @@ def discord_entries(harvest, meta):
             said_desc = tidy_desc(said)
             desc = (said_desc if len(said_desc) >= 40 else '') \
                 or (mm.get('description') or '') or said_desc
-            kind = 'read' if (host and READ_HOST.search(host)) else 'tool'
+            kind = kind_for(chan, host)
+            # the heading is the brass label on the row AND part of the search
+            # haystack, so naming the channel makes "#tools" a searchable term
             e = {'src': 'discord', 'kind': kind, 'timeless': True,
-                 'heading': 'Discord', 'title': title[:200], 'description': desc[:500],
+                 'heading': '#' + chan if chan else 'Discord',
+                 'title': title[:200], 'description': desc[:500],
                  'url': url, 'date': date, 'msg': m['id']}
+            if cid: e['ch'] = cid
+            if chan: e['chan'] = chan
             if msg_url: e['msgUrl'] = msg_url
             if m.get('author'): e['by'] = m['author']
             if host: e['domain'] = host
@@ -99,6 +120,7 @@ def name_from_url(url, host, repo):
 def occurrence(e):
     o = {'src': e['src'], 'date': e.get('date')}
     if e.get('ed'): o['ed'] = e['ed']
+    if e.get('chan'): o['chan'] = e['chan']
     if e.get('msgUrl'): o['msgUrl'] = e['msgUrl']
     if e.get('by'): o['by'] = e['by']
     return o
@@ -175,7 +197,12 @@ def main():
     out = {'generatedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z'),
            'editions': nib['editions'], 'entries': entries, 'tags': tags,
            'sources': {'nibble': sum(1 for e in entries if e['src'] == 'nibble'),
-                       'discord': sum(1 for e in entries if e['src'] == 'discord')},
+                       'discord': sum(1 for e in entries if e['src'] == 'discord'),
+                       # from the harvest, not the surviving rows: a channel
+                       # whose links all deduped into newsletter entries was
+                       # still a channel we read
+                       'channels': sorted(filter(None, (c.get('name') for c
+                                                        in (harvest.get('channels') or {}).values())))},
            'entityCount': len({e.get('url') and canonical(e['url']) or ('quote::' + e['title'])
                                for e in entries})}
     blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
@@ -202,6 +229,9 @@ def main():
     pr(f"out: {len(entries)} entries  ({collapsed} duplicate sightings folded in)")
     pr(f"     {out['sources']['nibble']} shown from the newsletter, "
        f"{out['sources']['discord']} Discord-only")
+    per = Counter(e.get('chan') or e.get('ch') for e in entries if e['src'] == 'discord')
+    for chan, n in per.most_common():
+        pr(f"       #{chan or '?':<22} {n:5d} shown")
     both = [e for e in entries if e.get('also') and
             {o['src'] for o in e['also']} | {e['src']} == {'nibble', 'discord'}]
     pr(f"     {len(both)} links seen in BOTH the newsletter and Discord")
