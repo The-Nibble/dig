@@ -26,10 +26,15 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Set DISCORD_GUILD_ID and every public channel is found automatically,
+      # including ones created after this workflow was written. Set
+      # DISCORD_CHANNEL_IDS instead to pin the list by hand.
       - name: Harvest new messages
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
           DISCORD_CHANNEL_IDS: ${{ secrets.DISCORD_CHANNEL_IDS }}
+          DISCORD_EXCLUDE_CHANNELS: ${{ vars.DISCORD_EXCLUDE_CHANNELS }}
           DISCORD_TOKEN_TYPE: ${{ vars.DISCORD_TOKEN_TYPE || 'bot' }}
         run: python3 fetch-discord.py
 

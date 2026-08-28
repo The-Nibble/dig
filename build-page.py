@@ -14,6 +14,7 @@ Usage:
 """
 import gzip, json, os, re, sys
 from collections import Counter, defaultdict
+from urllib.parse import unquote
 from datetime import datetime, timezone
 
 from taxonomy import KIND_META, TAG_META, canonical, entity, is_furniture, tags_for, tidy_desc
@@ -54,13 +55,32 @@ def kind_for(chan_name, host):
     return 'read' if (host and READ_HOST.search(host)) else 'tool'
 
 
+def channel_slugs(channels):
+    """Channel name -> tag slug. A channel is a facet you can click, which is
+    the only way "everything from #tools" is answerable without a search box.
+    Prefixed only on collision, so the chip normally reads exactly '#tools'."""
+    out = {}
+    for c in channels.values():
+        name = (c.get('parent') or c.get('name') or '').strip()
+        if not name or name in out:
+            continue
+        slug = re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
+        if slug:
+            out[name] = 'ch-' + slug if slug in TAG_META else slug
+    return out
+
+
 def discord_entries(harvest, meta):
     guild = harvest.get('guildId')
     channels = harvest.get('channels') or {}
+    slugs = channel_slugs(channels)
     out = []
     for m in harvest.get('messages', []):
         cid = m.get('ch')
-        chan = (channels.get(cid) or {}).get('name')
+        cmeta = channels.get(cid) or {}
+        # a forum post is a thread; label it with the channel it sits in, or
+        # every post title becomes its own one-row 'channel'
+        chan = cmeta.get('parent') or cmeta.get('name')
         date = (m.get('ts') or '')[:10]
         msg_url = (f'https://discord.com/channels/{guild}/{cid}/{m["id"]}'
                    if guild and cid else None)
@@ -84,10 +104,8 @@ def discord_entries(harvest, meta):
             desc = (said_desc if len(said_desc) >= 40 else '') \
                 or (mm.get('description') or '') or said_desc
             kind = kind_for(chan, host)
-            # the heading is the brass label on the row AND part of the search
-            # haystack, so naming the channel makes "#tools" a searchable term
             e = {'src': 'discord', 'kind': kind, 'timeless': True,
-                 'heading': '#' + chan if chan else 'Discord',
+                 'heading': KIND_META[kind][0],
                  'title': title[:200], 'description': desc[:500],
                  'url': url, 'date': date, 'msg': m['id']}
             if cid: e['ch'] = cid
@@ -97,15 +115,19 @@ def discord_entries(harvest, meta):
             if host: e['domain'] = host
             if repo: e['repo'] = repo
             e['tags'] = tags_for(kind, e['title'], e['description'], host, url, repo) + ['discord']
+            if chan and slugs.get(chan):
+                e['tags'].append(slugs[chan])
             out.append(e)
     return out
 
 
 def name_from_url(url, host, repo):
+    """Last resort when nothing named the link: read the url itself."""
     if repo: return repo.split('/')[-1]
     seg = [s for s in re.sub(r'^https?://[^/]+', '', url).split('?')[0].split('/') if s]
     if seg:
-        s = re.sub(r'\.(html?|php|aspx?|md|pdf)$', '', seg[-1])
+        # a wiki slug arrives percent-encoded; 'Cunningham%27s Law' is not a title
+        s = unquote(re.sub(r'\.(html?|php|aspx?|md|pdf)$', '', seg[-1]))
         s = re.sub(r'[-_+]+', ' ', s).strip()
         if s and not re.fullmatch(r'[\d\W]+', s) and len(s) > 2:
             return s[:1].upper() + s[1:]
@@ -189,8 +211,11 @@ def main():
     # tag counts only; first/last is computed in the page from the live hit set,
     # so a chip and a free-text search can never disagree about a span
     agg = Counter(t for e in entries for t in e['tags'])
-    tags = [{'slug': t, 'label': TAG_META.get(t, (t.title(), 'topic'))[0],
-             'facet': TAG_META.get(t, (t.title(), 'topic'))[1], 'count': c}
+    meta_of = dict(TAG_META)
+    for name, slug in channel_slugs(harvest.get('channels') or {}).items():
+        meta_of.setdefault(slug, ('#' + name, 'channel'))
+    tags = [{'slug': t, 'label': meta_of.get(t, (t.title(), 'topic'))[0],
+             'facet': meta_of.get(t, (t.title(), 'topic'))[1], 'count': c}
             for t, c in agg.items()]
     tags.sort(key=lambda x: (-x['count'], x['slug']))
 

@@ -50,8 +50,26 @@ secrets:
 
 | secret | what |
 | --- | --- |
-| `DISCORD_TOKEN` | a **bot** token, with the bot in the server and `Read Message History` on the channel |
-| `DISCORD_CHANNEL_IDS` | comma-separated channel ids (right-click a channel -> Copy Channel ID, with Developer Mode on) |
+| `DISCORD_TOKEN` | a **bot** token (see below) |
+| `DISCORD_GUILD_ID` | the server id - every public channel in it is found automatically |
+
+Optional repo *variables*: `DISCORD_EXCLUDE_CHANNELS` to skip channels by id,
+`DISCORD_CHANNEL_IDS` (as a secret) to pin an explicit list instead of
+discovering, `DISCORD_TOKEN_TYPE`.
+
+#### Making the bot
+
+1. <https://discord.com/developers/applications> -> **New Application**.
+2. **Bot** tab -> under *Privileged Gateway Intents*, turn on **Message Content
+   Intent**. Without it Discord returns every `content` field empty and the
+   harvest finds nothing - this is the one setting that silently breaks
+   everything. **Reset Token** -> that string is `DISCORD_TOKEN`.
+3. **OAuth2 -> URL Generator** -> scope `bot`, permissions **View Channels** and
+   **Read Message History**. Open the generated url, add it to the server.
+4. In Discord: **Settings -> Advanced -> Developer Mode** on, then right-click
+   the server icon -> **Copy Server ID**. That is `DISCORD_GUILD_ID`.
+
+The bot never needs Send Messages. It reads, and nothing else.
 
 A personal account token works against the same endpoint - set
 `DISCORD_TOKEN_TYPE=user` - but self-botting breaks Discord's ToS and the risk
@@ -66,10 +84,11 @@ password change, which a user token does not.
 python3 build-index.py
 
 # discord side
-export DISCORD_TOKEN=... DISCORD_CHANNEL_IDS=111,222,333   # TYPE=user if personal
+export DISCORD_TOKEN=... DISCORD_GUILD_ID=111   # TOKEN_TYPE=user if personal
+python3 fetch-discord.py --list            # what discovery finds, fetching nothing
 python3 fetch-discord.py --backfill        # first run: walk every history
 python3 fetch-discord.py                   # after that: only what is new
-python3 fetch-discord.py --only 444        # just-added channel, backfill one
+python3 fetch-discord.py --only 444        # one channel, on its own
 python3 enrich-links.py                    # titles + blurbs for bare links
 
 # merge, dedupe, inline
@@ -94,15 +113,38 @@ daily, because the file is 2.7 MB and rewritten whole every time.
 
 ### Channels
 
-Each channel keeps its own cursor, so adding one to `DISCORD_CHANNEL_IDS`
-backfills only that channel and leaves the rest untouched. The channel name
-becomes the row's label (where an edition entry shows its section) and is part
-of the search haystack, so `#reads` is a searchable term. A channel whose name
-says what it holds also overrides the kind heuristic - a link in `#reads` is
-filed as a Read even when it points at GitHub.
+With `DISCORD_GUILD_ID` set, every run asks the server what channels it has and
+reads all the public ones - text and announcement channels @everyone can view,
+plus their threads, plus forum posts. A channel created next month is indexed
+the next morning with no config change. Private channels are skipped by the
+@everyone `View Channel` check, a private category makes its children private
+too, and anything the token cannot actually read is skipped with a note rather
+than failing the run.
+
+Archived threads are enumerated once per parent channel, since an archived
+thread cannot gain a message without being unarchived - which puts it back in
+the active list. Each channel and thread keeps its own cursor, so a newly
+discovered one backfills only itself.
+
+A channel whose name says what it holds overrides the kind heuristic - a link in
+`#reads` is filed as a Read even when it points at GitHub. Forum posts are
+labelled with their parent channel, not the post title.
 
 Dedupe runs across channels as well as across sources: the same link in
 `#tools` and `#reads` is one entry, and the row says `also in #tools`.
+
+### On the page
+
+A newsletter entry shows its **edition number** in the left rail, linking to the
+edition on Substack. A link that only ever appeared in the channel shows the
+**Discord mark** in that same slot - the rail is an address, and this one has no
+edition to point at. It links to the message permalink, which resolves for
+members of the server; the tooltip names the channel and who posted it.
+
+Each channel is also a **chip** in its own facet row, so "everything from
+`#tools`" is one click, and the first/last trace narrows to it. On a row that ran
+in both places the newsletter copy is what you see, with the meta line reading
+`first in #reads, Sept 2024`.
 
 ## Dedupe
 
