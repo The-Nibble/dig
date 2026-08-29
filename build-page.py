@@ -119,11 +119,13 @@ def discord_entries(harvest, meta):
             title = (u.get('text') or mm.get('title') or '').strip()
             if not title:
                 title = name_from_url(url, host, repo)
-            # "good thread" is an aside, not a description: a short remark
-            # loses to the real blurb, and only stands in when there is none
+            # "good thread" is an aside, not a description: a substantial remark
+            # beats the fetched blurb, a brief one only stands in when there is
+            # no blurb at all, and "Damn." is worse than saying nothing.
             said_desc = tidy_desc(said)
             desc = (said_desc if len(said_desc) >= 40 else '') \
-                or (mm.get('description') or '') or said_desc
+                or (mm.get('description') or '') \
+                or (said_desc if len(said_desc) >= 20 else '')
             kind = kind_for(chan, host)
             e = {'src': 'discord', 'kind': kind, 'timeless': True,
                  'heading': KIND_META[kind][0],
