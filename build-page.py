@@ -119,8 +119,12 @@ def discord_entries(harvest, meta):
             key = canonical(url)
             mm = meta.get(key) or {}
             host, repo = entity(url)
-            title = (u.get('text') or mm.get('title') or '').strip()
-            if not title:
+            # a link text or an og:title that is itself a url names nothing;
+            # some sites really do put their canonical url in <title>
+            title = (u.get('text') or '').strip()
+            if not title or re.match(r'^https?://', title):
+                title = (mm.get('title') or '').strip()
+            if not title or re.match(r'^https?://', title):
                 title = name_from_url(url, host, repo)
             # "good thread" is an aside, not a description: a substantial remark
             # beats the fetched blurb, a brief one only stands in when there is
@@ -147,9 +151,16 @@ def discord_entries(harvest, meta):
     return out
 
 
+# Hosts whose last path segment is an opaque id, so reading the url produces
+# noise rather than a name: archive.is/xArCk, imdb.com/title/tt5537002.
+OPAQUE = re.compile(r'(^|\.)(archive\.(is|ph|today|vn|li)|imdb\.com)$', re.I)
+
+
 def name_from_url(url, host, repo):
     """Last resort when nothing named the link: read the url itself."""
     if repo: return repo.split('/')[-1]
+    if host and OPAQUE.search(host):
+        return host
     seg = [s for s in re.sub(r'^https?://[^/]+', '', url).split('?')[0].split('/') if s]
     if seg:
         # a wiki slug arrives percent-encoded; 'Cunningham%27s Law' is not a title
