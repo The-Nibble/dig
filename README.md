@@ -84,7 +84,9 @@ password change, which a user token does not.
 python3 build-index.py
 
 # discord side
-export DISCORD_TOKEN=... DISCORD_GUILD_ID=111   # TOKEN_TYPE=user if personal
+# credentials live in .env.local (gitignored) - cp .env.local.example .env.local
+set -a; . ./.env.local; set +a
+
 python3 fetch-discord.py --list            # what discovery finds, fetching nothing
 python3 fetch-discord.py --backfill        # first run: walk every history
 python3 fetch-discord.py                   # after that: only what is new

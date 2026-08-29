@@ -3,3 +3,4 @@ __pycache__/
 index.json
 archive-index.json
 descriptions.todo.json
+.env.local
