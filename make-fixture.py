@@ -42,7 +42,7 @@ def add(url, text, when, author, cid=None):
     mid += rng.randint(10**6, 10**9)
     msgs.append({'id': str(mid), 'ch': cid or rng.choice(CIDS),
                  'ts': when + 'T09:14:00.000000+00:00', 'author': author,
-                 'authorId': '1', 'content': text, 'urls': [{'url': url, 'text': None}]})
+                 'said': text, 'urls': [{'url': url, 'text': None}]})
 
 
 # 20 links that also ran in the newsletter, shared in Discord weeks earlier

@@ -187,6 +187,20 @@ def discover(gid, store, backfill):
 
 
 # ---- harvest --------------------------------------------------------------
+COMMENTARY_CAP = 300
+
+
+def commentary(content):
+    """What someone said around the link - all the page ever uses.
+
+    The raw message is deliberately not kept. This file is committed to a public
+    repo, and publishing a community's chat verbatim is a different thing from
+    indexing the links in it.
+    """
+    said = re.sub(r'https?://\S+', ' ', content or '')
+    return re.sub(r'\s+', ' ', said).strip(' -\u2013\u2014:\u2022|')[:COMMENTARY_CAP]
+
+
 def extract(content):
     """[(url, link_text_or_None)] in document order, furniture dropped."""
     out, seen = [], set()
@@ -215,6 +229,18 @@ def load():
         st.pop('channelId', None); st.pop('lastMessageId', None)
     st.setdefault('archivedScanned', [])
     return st
+
+
+def save(store):
+    """Written after every channel, not once at the end: a first backfill walks
+    a hundred histories, and losing all of it to one interruption is not a
+    reasonable thing to risk when the cursors are already correct."""
+    store['messages'].sort(key=lambda m: int(m['id']))
+    os.makedirs(os.path.dirname(STORE), exist_ok=True)
+    tmp = STORE + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as fh:
+        json.dump(store, fh, ensure_ascii=False, indent=1)
+    os.replace(tmp, STORE)          # never leave a half-written harvest behind
 
 
 def harvest_channel(info, store, known, backfill, limit):
@@ -265,9 +291,10 @@ def harvest_channel(info, store, known, backfill, limit):
                 store['messages'].append({
                     'id': m['id'], 'ch': cid,
                     'ts': m.get('timestamp'),
+                    # a display name is enough to credit a share; the account
+                    # id is never read downstream and this file is committed
                     'author': a.get('global_name') or a.get('username'),
-                    'authorId': a.get('id'),
-                    'content': (m.get('content') or '').strip(),
+                    'said': commentary(m.get('content')),
                     'urls': [{'url': u, 'text': t} for u, t in urls],
                 })
                 known.add(m['id']); kept += 1
@@ -321,13 +348,15 @@ def main():
         return
 
     total = 0
-    for t in targets:
-        total += harvest_channel(t, store, known, backfill, limit)
-
-    store['messages'].sort(key=lambda m: int(m['id']))
-    os.makedirs(os.path.dirname(STORE), exist_ok=True)
-    with open(STORE, 'w', encoding='utf-8') as fh:
-        json.dump(store, fh, ensure_ascii=False, indent=1)
+    for n, t in enumerate(targets, 1):
+        print(f"[{n}/{len(targets)}]", end=' ', file=sys.stderr)
+        try:
+            total += harvest_channel(t, store, known, backfill, limit)
+        except KeyboardInterrupt:
+            save(store)
+            raise SystemExit(f"\ninterrupted - kept {total} new messages, "
+                             f"rerun to carry on from here")
+        save(store)
 
     nlinks = sum(len(m['urls']) for m in store['messages'])
     per = Counter(m.get('ch') for m in store['messages'])

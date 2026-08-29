@@ -55,6 +55,22 @@ def kind_for(chan_name, host):
     return 'read' if (host and READ_HOST.search(host)) else 'tool'
 
 
+# Channels that are harvested but deliberately not surfaced. The harvest stays
+# lossless, so this is a display decision and reversible without re-fetching:
+# drop a name from here and the next build shows it.
+HIDE_CHANNELS = {'liked-phrases', 'memes', 'introductions'}
+
+
+def shown_channels(harvest):
+    out = {}
+    for cid, c in (harvest.get('channels') or {}).items():
+        name = c.get('parent') or c.get('name')
+        if name and name.lstrip('#') in HIDE_CHANNELS:
+            continue
+        out[cid] = c
+    return out
+
+
 def channel_slugs(channels):
     """Channel name -> tag slug. A channel is a facet you can click, which is
     the only way "everything from #tools" is answerable without a search box.
@@ -72,21 +88,26 @@ def channel_slugs(channels):
 
 def discord_entries(harvest, meta):
     guild = harvest.get('guildId')
-    channels = harvest.get('channels') or {}
+    channels = shown_channels(harvest)
     slugs = channel_slugs(channels)
     out = []
     for m in harvest.get('messages', []):
         cid = m.get('ch')
-        cmeta = channels.get(cid) or {}
+        if cid not in channels:
+            continue                    # harvested, but not shown
+        cmeta = channels[cid]
         # a forum post is a thread; label it with the channel it sits in, or
         # every post title becomes its own one-row 'channel'
         chan = cmeta.get('parent') or cmeta.get('name')
         date = (m.get('ts') or '')[:10]
         msg_url = (f'https://discord.com/channels/{guild}/{cid}/{m["id"]}'
                    if guild and cid else None)
-        # message text minus the urls themselves is the human blurb, when there
-        # is one. Most messages are a bare link, which is why link-meta exists.
-        said = re.sub(r'https?://\S+', '', m.get('content') or '')
+        # the blurb someone wrote around the link, when there was one. Most
+        # messages are a bare link, which is why link-meta exists. Harvests made
+        # before the trim stored the whole message, so both shapes are read.
+        said = m.get('said')
+        if said is None:
+            said = re.sub(r'https?://\S+', ' ', m.get('content') or '')
         said = re.sub(r'\s+', ' ', said).strip(' -–—:•|')
         for u in m['urls']:
             url = u['url']
@@ -212,7 +233,7 @@ def main():
     # so a chip and a free-text search can never disagree about a span
     agg = Counter(t for e in entries for t in e['tags'])
     meta_of = dict(TAG_META)
-    for name, slug in channel_slugs(harvest.get('channels') or {}).items():
+    for name, slug in channel_slugs(shown_channels(harvest)).items():
         meta_of.setdefault(slug, ('#' + name, 'channel'))
     tags = [{'slug': t, 'label': meta_of.get(t, (t.title(), 'topic'))[0],
              'facet': meta_of.get(t, (t.title(), 'topic'))[1], 'count': c}
@@ -226,8 +247,9 @@ def main():
                        # from the harvest, not the surviving rows: a channel
                        # whose links all deduped into newsletter entries was
                        # still a channel we read
-                       'channels': sorted(filter(None, (c.get('name') for c
-                                                        in (harvest.get('channels') or {}).values())))},
+                       'channels': sorted({c.get('parent') or c.get('name')
+                                           for c in shown_channels(harvest).values()
+                                           if c.get('parent') or c.get('name')})},
            'entityCount': len({e.get('url') and canonical(e['url']) or ('quote::' + e['title'])
                                for e in entries})}
     blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
