@@ -15,6 +15,13 @@ Usage:
   python3 enrich-links.py             # fill gaps for links in data/discord.json
   python3 enrich-links.py --retry     # also re-attempt previously failed links
   python3 enrich-links.py --limit 50  # cap the number of network fetches
+  python3 enrich-links.py --gaps g.json    # list links still lacking a title
+  python3 enrich-links.py --merge a.json   # fold researched titles/blurbs back in
+
+The last two exist for the links a regex scraper cannot read - bot walls, pages
+that render their title in JavaScript. Something that can actually fetch the page
+fills those in. Merged records are marked `via` so an agent-sourced blurb is
+never mistaken for the page's own metadata, and a plain rerun will not clobber it.
 """
 import gzip, html as htmllib, io, json, os, re, sys, time
 import urllib.request, urllib.error, urllib.parse
@@ -122,6 +129,19 @@ def from_hn(item_id):
     return title, (htmllib.unescape(re.sub(r'<[^>]+>', ' ', d.get('text') or '')) or None)
 
 
+def from_arxiv(arxiv_id):
+    """arXiv's Atom API, rather than scraping the abstract page."""
+    doc, _ = get(f'http://export.arxiv.org/api/query?id_list={arxiv_id}',
+                 accept='application/atom+xml')
+    def tag(name):
+        m = re.search(rf'<{name}>(.*?)</{name}>', doc, re.S)
+        return htmllib.unescape(re.sub(r'\s+', ' ', m.group(1))).strip() if m else None
+    # the feed repeats <title> for the query itself; the entry's is the second
+    titles = re.findall(r'<title>(.*?)</title>', doc, re.S)
+    title = htmllib.unescape(re.sub(r'\s+', ' ', titles[-1])).strip() if titles else None
+    return title, tag('summary')
+
+
 def from_wikipedia(host, path):
     slug = path.rstrip('/').split('/')[-1]
     doc, _ = get(f'https://{host}/api/rest_v1/page/summary/{slug}', accept='application/json')
@@ -142,12 +162,46 @@ def fetch_meta(url):
     if host == 'news.ycombinator.com':
         m = re.search(r'[?&]id=(\d+)', url)
         if m: return from_hn(m.group(1))
-    # x/twitter serve nothing to a fetcher; a handle beats a status id
-    m = re.match(r'(?:^|\.)?(?:twitter\.com|x\.com)$', host or '')
-    if m:
+    if host and re.search(r'(^|\.)arxiv\.org$', host):
+        m = re.search(r'/(?:abs|pdf)/([\w.\-/]+?)(?:v\d+)?(?:\.pdf)?$', path)
+        if m: return from_arxiv(m.group(1))
+    # x/twitter serve nothing to a fetcher, and the vx/fx mirrors people paste
+    # are the same post; a handle beats a status id either way
+    if host and re.search(r'(^|\.)((vx|fx)?twitter\.com|x\.com|fixupx\.com)$', host):
         u = re.search(r'/([^/]+)/status/', url)
         if u: return f'Post by @{u.group(1)}', None
     return scrape(url)
+
+
+def gaps(cache, path):
+    """Links a fetch could not name. An agent that can read the page fills these."""
+    out = {k: {'url': c.get('url'), 'error': c.get('error')}
+           for k, c in cache.items() if not c.get('title')}
+    json.dump(out, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(f"{len(out)} links still unnamed -> {path}", file=sys.stderr)
+
+
+def merge(cache, path):
+    """Fold in {canonical: {title, description}} researched elsewhere."""
+    got = json.load(open(path, encoding='utf-8'))
+    now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    n = 0
+    for key, rec in got.items():
+        title = (rec.get('title') or '').strip()
+        if key not in cache or not title:
+            continue
+        c = cache[key]
+        if c.get('title'):
+            continue                      # never overwrite the page's own metadata
+        desc = re.sub(r'\s+', ' ', rec.get('description') or '').strip()
+        if BOILERPLATE.search(desc[:200]):
+            desc = ''
+        c.update({'ok': True, 'title': title[:160],
+                  'description': tidy_desc(desc[:400]) or None,
+                  'via': 'agent', 'fetchedAt': now})
+        n += 1
+    print(f"merged {n} researched links", file=sys.stderr)
+    return n
 
 
 def main():
@@ -156,6 +210,13 @@ def main():
     limit = int(args[args.index('--limit') + 1]) if '--limit' in args else None
 
     cache = json.load(open(CACHE, encoding='utf-8')) if os.path.exists(CACHE) else {}
+    if '--gaps' in args:
+        return gaps(cache, args[args.index('--gaps') + 1])
+    if '--merge' in args:
+        merge(cache, args[args.index('--merge') + 1])
+        with open(CACHE, 'w', encoding='utf-8') as fh:
+            json.dump(cache, fh, ensure_ascii=False, indent=1, sort_keys=True)
+        return print(f"wrote {CACHE}", file=sys.stderr)
     if not os.path.exists(HARVEST):
         raise SystemExit(f'no {HARVEST} - run fetch-discord.py first')
     harvest = json.load(open(HARVEST, encoding='utf-8'))
@@ -175,6 +236,8 @@ def main():
         if not c:
             todo.append((key, url)); continue
         if c.get('ok') and (c.get('title') or not retry):
+            continue
+        if c.get('via') == 'agent' and c.get('title'):
             continue
         stale = now - datetime.fromisoformat(c['fetchedAt']) > timedelta(days=RETRY_AFTER_DAYS)
         if retry or stale:

@@ -65,6 +65,30 @@ def is_furniture(url):
     return bool(host and SKIP_HOST.match(host))
 
 
+# Job postings are temporal in exactly the way News is, and News is deliberately
+# left out of this archive: a posting 404s within months, and "when did we first
+# talk about X" is not a question anyone asks of a vacancy. Applicant-tracking
+# hosts are unambiguous; the path rule is anchored at the start so an article at
+# businessinsider.in/tech/careers/... is not mistaken for a vacancy.
+ATS_HOST = re.compile(
+    r'(^|\.)(boards\.greenhouse\.io|greenhouse\.io|jobs\.lever\.co|lever\.co|jobs\.ashbyhq\.com'
+    r'|ashbyhq\.com|apply\.workable\.com|workable\.com|smartrecruiters\.com|recruitee\.com'
+    r'|breezy\.hr|[\w-]+\.myworkdayjobs\.com|wellfound\.com|angel\.co|[\w-]+\.hire\.trakstar\.com'
+    r'|rubyonremote\.com|aijobs\.app|web3\.career|ats\.rippling\.com|jobs\.apple\.com'
+    r'|flipkartcareers\.com|naukri\.com|hirist\.com|instahyre\.com|cutshort\.io)$', re.I)
+_JOB_PATH = re.compile(r'^/(careers?|jobs)(/|$)', re.I)
+
+
+def is_job(url):
+    host, _ = entity(url)
+    if host and ATS_HOST.search(host):
+        return True
+    try:
+        return bool(_JOB_PATH.match(urlparse(url).path or ''))
+    except Exception:
+        return False
+
+
 def tags_for(kind, title, desc, host, url, repo):
     tags = [kind]
     hay = f"{title} {desc} {host or ''} {url or ''}".lower()

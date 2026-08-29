@@ -17,7 +17,8 @@ from collections import Counter, defaultdict
 from urllib.parse import unquote
 from datetime import datetime, timezone
 
-from taxonomy import KIND_META, TAG_META, canonical, entity, is_furniture, tags_for, tidy_desc
+from taxonomy import (KIND_META, TAG_META, canonical, entity, is_furniture, is_job,
+                      tags_for, tidy_desc)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAGE = os.path.join(HERE, 'index.html')
@@ -58,7 +59,7 @@ def kind_for(chan_name, host):
 # Channels that are harvested but deliberately not surfaced. The harvest stays
 # lossless, so this is a display decision and reversible without re-fetching:
 # drop a name from here and the next build shows it.
-HIDE_CHANNELS = {'liked-phrases', 'memes', 'introductions'}
+HIDE_CHANNELS = {'liked-phrases', 'memes', 'introductions', 'job-posts'}
 
 
 def shown_channels(harvest):
@@ -111,7 +112,9 @@ def discord_entries(harvest, meta):
         said = re.sub(r'\s+', ' ', said).strip(' -–—:•|')
         for u in m['urls']:
             url = u['url']
-            if is_furniture(url) or not canonical(url):
+            # a vacancy is not an archive entry; the newsletter's own curated
+            # links are left alone, since those were a deliberate choice
+            if is_furniture(url) or is_job(url) or not canonical(url):
                 continue
             key = canonical(url)
             mm = meta.get(key) or {}
