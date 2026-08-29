@@ -145,6 +145,14 @@ def canonical(url):
         vid = dict(parse_qsl(p.query)).get('v')
         if vid: return f'youtube.com/watch?v={vid}'
 
+    # one tweet, however it was spelled. x.com and twitter.com serve the same
+    # post, the vx/fx mirrors exist only to render it, and the handle in the
+    # path is not even required to be correct - the status id is the identity.
+    if re.match(r'^((vx|fx)?twitter\.com|x\.com|fixupx\.com)$', host):
+        m = re.search(r'/status(?:es)?/(\d+)', path)
+        if m:
+            return f'x.com/status/{m.group(1)}'
+
     # a GitHub project is one entity however deep the link goes
     if host == 'github.com':
         parts = [x for x in path.split('/') if x]

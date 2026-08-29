@@ -14,6 +14,8 @@ faster, kinder and far more reliable than parsing whatever HTML ships that day.
 Usage:
   python3 enrich-links.py             # fill gaps for links in data/discord.json
   python3 enrich-links.py --retry     # also re-attempt previously failed links
+  python3 enrich-links.py --refetch 'x[.]com'  # redo links matching a url pattern
+  python3 enrich-links.py --prune     # drop cache keys the harvest no longer wants
   python3 enrich-links.py --limit 50  # cap the number of network fetches
   python3 enrich-links.py --gaps g.json    # list links still lacking a title
   python3 enrich-links.py --merge a.json   # fold researched titles/blurbs back in
@@ -129,6 +131,30 @@ def from_hn(item_id):
     return title, (htmllib.unescape(re.sub(r'<[^>]+>', ' ', d.get('text') or '')) or None)
 
 
+def from_twitter(status_id):
+    """The tweet itself, via fxtwitter's public JSON.
+
+    x.com serves a fetcher nothing but a JS shell, so the old fallback titled
+    every post "Post by @handle" - useless in a search index, and outright wrong
+    on a modern /i/status/ url where `i` is a placeholder rather than a handle.
+    """
+    doc, _ = get(f'https://api.fxtwitter.com/status/{status_id}',
+                 accept='application/json')
+    d = json.loads(doc)
+    t = d.get('tweet') or {}
+    a = t.get('author') or {}
+    who = a.get('name') or a.get('screen_name') or ''
+    handle = a.get('screen_name')
+    text = re.sub(r'\s+', ' ', (t.get('text') or '')).strip()
+    byline = f"Post by {who} (@{handle})" if handle else 'Post on X'
+    if not text:                      # media-only post: the byline is all there is
+        return byline, None
+    title = text[:110].rstrip()
+    if len(text) > 110:
+        title = title.rsplit(' ', 1)[0] + '…'
+    return title, (text if len(text) > len(title) else byline)
+
+
 def from_arxiv(arxiv_id):
     """arXiv's Atom API, rather than scraping the abstract page."""
     doc, _ = get(f'http://export.arxiv.org/api/query?id_list={arxiv_id}',
@@ -165,11 +191,19 @@ def fetch_meta(url):
     if host and re.search(r'(^|\.)arxiv\.org$', host):
         m = re.search(r'/(?:abs|pdf)/([\w.\-/]+?)(?:v\d+)?(?:\.pdf)?$', path)
         if m: return from_arxiv(m.group(1))
-    # x/twitter serve nothing to a fetcher, and the vx/fx mirrors people paste
-    # are the same post; a handle beats a status id either way
+    # x/twitter and the vx/fx mirrors people paste are all the same post; the
+    # status id is the only part of the path that reliably identifies it
     if host and re.search(r'(^|\.)((vx|fx)?twitter\.com|x\.com|fixupx\.com)$', host):
-        u = re.search(r'/([^/]+)/status/', url)
-        if u: return f'Post by @{u.group(1)}', None
+        u = re.search(r'/status(?:es)?/(\d+)', path)
+        if u:
+            try:
+                return from_twitter(u.group(1))
+            except Exception:
+                pass                  # deleted, protected, or the mirror is down
+        u = re.search(r'/([^/]+)/status', path)
+        if u and u.group(1) not in ('i', 'web'):
+            return f'Post by @{u.group(1)}', None
+        return None, None
     return scrape(url)
 
 
@@ -208,6 +242,9 @@ def main():
     args = sys.argv[1:]
     retry = '--retry' in args
     limit = int(args[args.index('--limit') + 1]) if '--limit' in args else None
+    # a handler that got better needs its old answers thrown away, even the ones
+    # that "worked" - matched against the stored url
+    refetch = re.compile(args[args.index('--refetch') + 1], re.I) if '--refetch' in args else None
 
     cache = json.load(open(CACHE, encoding='utf-8')) if os.path.exists(CACHE) else {}
     if '--gaps' in args:
@@ -234,6 +271,8 @@ def main():
     for key, url in wanted.items():
         c = cache.get(key)
         if not c:
+            todo.append((key, url)); continue
+        if refetch and refetch.search(c.get('url') or url):
             todo.append((key, url)); continue
         if c.get('ok') and (c.get('title') or not retry):
             continue
@@ -265,6 +304,14 @@ def main():
         cache[key] = rec
         time.sleep(0.2)             # be a good citizen; this is not a crawler
     print(file=sys.stderr)
+
+    # a canonicalisation change orphans the keys it used to produce; the harvest
+    # only ever grows, so anything not wanted by it now is dead weight
+    if '--prune' in args:
+        dead = [k for k in cache if k not in wanted]
+        for k in dead:
+            del cache[k]
+        print(f"pruned {len(dead)} orphaned cache keys", file=sys.stderr)
 
     os.makedirs(os.path.dirname(CACHE), exist_ok=True)
     with open(CACHE, 'w', encoding='utf-8') as fh:
