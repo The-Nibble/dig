@@ -39,14 +39,22 @@ Discord channels --fetch-discord.py-->  data/discord.json  ---.       |
 ```
 
 `build-page.py` is the only script that writes `index.html`, and it is pure:
-same inputs, same page. Everything under `data/` is committed, which is what
-lets the daily job rebuild without the Substack archive.
+same inputs, byte-identical page - it even keeps the previous `generatedAt` when
+nothing else moved, so a day with no new links produces no commit at all.
+Everything under `data/` is committed, which is what lets the daily job rebuild
+without the Substack archive.
+
+The harvest is stored losslessly and every heuristic - tags, kinds, dedupe,
+which channels are shown, what counts as chat furniture - runs at build time.
+Widening a filter or fixing a rule therefore re-cleans the existing harvest
+instead of needing the whole server re-fetched.
 
 ### Daily, in CI
 
 `.github/workflows/daily-discord.yml` runs at 04:17 UTC: harvest new messages,
-fetch metadata for links it has never seen, rebuild, commit. It needs two repo
-secrets:
+fetch metadata for links it has never seen, rebuild, commit. The whole loop runs
+unattended - verified by running every step from a fresh shallow clone with
+nothing but the repo and the two secrets below. It needs:
 
 | secret | what |
 | --- | --- |
@@ -92,10 +100,32 @@ python3 fetch-discord.py --backfill        # first run: walk every history
 python3 fetch-discord.py                   # after that: only what is new
 python3 fetch-discord.py --only 444        # one channel, on its own
 python3 enrich-links.py                    # titles + blurbs for bare links
+GITHUB_TOKEN=$(gh auth token) python3 enrich-links.py --retry   # github api is
+                                           # rate limited to 60/hr unauthenticated
 
 # merge, dedupe, inline
 python3 build-page.py
 ```
+
+Some links a scraper simply cannot read - bot walls, titles rendered in
+JavaScript. `agent-fill.py` hands those to an agent CLI that can fetch the page
+properly. It is a manual pass, not part of the daily job:
+
+```sh
+python3 enrich-links.py --gaps gaps.json   # only the links still unnamed
+python3 agent-fill.py gaps.json            # --cli sarvam-code | codex
+python3 enrich-links.py --merge filled.json
+```
+
+A link that still cannot be read keeps its url-derived name. A confident guess
+about a page nobody fetched is indistinguishable from a real entry and worse
+than a boring title, so `agent-fill.py` reports what it left unnamed rather than
+filling the gap. Merged records are marked `via`, so an agent-sourced blurb
+never masquerades as the page's own metadata, and a rerun will not clobber it.
+
+Two more `enrich-links.py` flags exist for when a handler improves:
+`--refetch '<url pattern>'` throws away old answers even where they "worked",
+and `--prune` drops cache keys a canonicalisation change has orphaned.
 
 No token to hand? `python3 make-fixture.py` writes a synthetic harvest that
 exercises the whole pipeline - cross-source duplicates, short links, tracking
@@ -108,10 +138,22 @@ If the entry count changed, regenerate the precomputed smart-search vectors
 python3 build-vectors.py   # embeds the corpus with the vendored model -> vectors.f32
 ```
 
-This is not urgent: the page checks `vectors.f32` against the corpus size and
-falls back to embedding in the browser when they disagree, so smart search keeps
-working - just slower on first load. CI rebuilds vectors weekly rather than
-daily, because the file is 2.7 MB and rewritten whole every time.
+This matters more than it used to. The page checks `vectors.f32` against the
+corpus size and falls back to embedding in the browser when they disagree - and
+at a few thousand entries that fallback locks the tab for a minute. A stale
+vectors file is a broken page, not a slower one, so CI rebuilds whenever the
+entry count moves rather than on a schedule:
+
+```sh
+python3 vectors-stale.py   # exit 0 = rebuild needed, 1 = already matches
+```
+
+That check is stdlib-only on purpose, so the daily job can answer the question
+without first installing `onnxruntime`.
+
+The row count also rides in the fetch url (`vectors.f32?n=3471`). Without that,
+`cache: 'force-cache'` would let a returning visitor keep serving themselves the
+previous file, fail the size check, and land in the in-browser fallback.
 
 ### Channels
 
@@ -135,6 +177,19 @@ labelled with their parent channel, not the post title.
 Dedupe runs across channels as well as across sources: the same link in
 `#tools` and `#reads` is one entry, and the row says `also in #tools`.
 
+`HIDE_CHANNELS` in `build-page.py` keeps a channel out of the page without
+dropping it from the harvest - currently `#memes`, `#liked-phrases`,
+`#introductions` and `#job-posts`. Because the harvest is lossless, removing a
+name from that set brings the channel back on the next build, with no re-fetch.
+
+Job postings are dropped wherever they appear: `taxonomy.is_job()` matches
+applicant-tracking hosts (Greenhouse, Lever, Ashby, Workable, Workday, ...) plus
+paths *anchored* at `/careers/` or `/jobs/`. The anchoring is the point - it
+drops `posthog.com/careers/product-engineer` while keeping an article at
+`businessinsider.in/tech/careers/news/...`. A vacancy 404s within months, which
+is the same reason News is left out of the archive. The newsletter's own links
+are exempt: a job link there was a deliberate editorial choice.
+
 ### On the page
 
 A newsletter entry shows its **edition number** in the left rail, linking to the
@@ -143,10 +198,22 @@ edition on Substack. A link that only ever appeared in the channel shows the
 edition to point at. It links to the message permalink, which resolves for
 members of the server; the tooltip names the channel and who posted it.
 
-Each channel is also a **chip** in its own facet row, so "everything from
-`#tools`" is one click, and the first/last trace narrows to it. On a row that ran
-in both places the newsletter copy is what you see, with the meta line reading
+Each channel is also a **chip**, so "everything from `#tools`" is one click, and
+the first/last trace narrows to it. On a row that ran in both places the
+newsletter copy is what you see, with the meta line reading
 `first in #reads, Sept 2024`.
+
+**Time range** (`Last week` / `month` / `3 months` / `year`) filters on the most
+*recent* sighting, so a 2023 link someone reshared yesterday counts as this
+week - which is the honest answer to "what came up lately". It rides in the url
+as `#w=7d`, like every other view.
+
+**Section, channel and topic fold into one collapsible row**, closed by default:
+34 channel chips over five lines pushed the results most of a screen down. Time
+range stays out in the open, since it is the filter people reach for unprompted.
+A chip left on inside a closed card would be an invisible filter, so the summary
+reads `Filtering by #tools` whenever one is active, and a deep link into a tag
+arrives with the card already open.
 
 ## Dedupe
 
