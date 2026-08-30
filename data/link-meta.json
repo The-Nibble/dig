@@ -624,6 +624,13 @@
   "title": "Age Normalized Testosterone Peaks at Series B for Male Startup Founders",
   "url": "https://arxiv.org/abs/2411.03361"
  },
+ "arxiv.org/abs/2608.27454": {
+  "description": "Agent skills package specialized knowledge and workflows into reusable resources that extend AI agent capabilities. Recent work automatically discovers such skills from agent experience, which enables agents to progressively adapt through interaction. However, the insights that guide skill development typically remain scattered across optimization histories, limiting their systematic reuse across.",
+  "fetchedAt": "2026-08-30T16:07:23+00:00",
+  "ok": true,
+  "title": "WikiSkill: Compiling Agent Experience into Persistent Knowledge for Skill Evolution",
+  "url": "https://arxiv.org/abs/2608.27454"
+ },
  "arxiv.org/pdf/2002.03057.pdf": {
   "description": "We introduce a data structure that allows for efficient (probabilistic) presence proofs and non-probabilistic absence proofs in a bandwidth efficient and secure way. The Bloom tree combines the idea of Bloom filters with that of Merkle trees. Bloom filters are used to verify the presence, or absence of elements in a set. In the case of the Bloom tree, we are interested to verify and transmit the p.",
   "fetchedAt": "2026-08-29T06:18:49+00:00",
@@ -1410,6 +1417,13 @@
   "title": "Brutal Web — (Neo)-Brutalist Websites Gallery",
   "url": "https://brutalweb.xyz/",
   "via": "agent"
+ },
+ "bubbbly.com/bloom": {
+  "description": "Type a link and watch a vase of flowers scatter into a scannable QR code. A 3D toy built with three.js.",
+  "fetchedAt": "2026-08-30T16:07:23+00:00",
+  "ok": true,
+  "title": "Bloom QR — a vase of flowers that becomes a scannable QR code",
+  "url": "https://www.bubbbly.com/bloom"
  },
  "bucket.co/": {
   "description": "TypeScript feature management that gets you back to building, faster.",
@@ -4276,6 +4290,13 @@
   "ok": true,
   "title": "riipandi/tauri-start-solid",
   "url": "https://github.com/riipandi/tauri-tray-app"
+ },
+ "github.com/rileycx/strafe": {
+  "description": "Instant macOS Space switching. No animation delay, interactive immediately. Source-only, zero dependencies, ~1k lines.",
+  "fetchedAt": "2026-08-30T16:07:23+00:00",
+  "ok": true,
+  "title": "rileycx/strafe",
+  "url": "https://github.com/rileycx/strafe"
  },
  "github.com/runk/node-chardet": {
   "description": "Character encoding detection tool for NodeJS.",
@@ -12630,6 +12651,20 @@
   "ok": true,
   "title": "Over 100 weeks of Nibble, we collected ~2,000 useful tools and TILs. Now you can search them all in plain…",
   "url": "https://x.com/AashutoshRathi/status/2091831492033015896"
+ },
+ "x.com/status/2093617003231899893": {
+  "description": "Post by Dexter (Financial Oligarch) (@dexterfinbar)",
+  "fetchedAt": "2026-08-30T16:07:23+00:00",
+  "ok": true,
+  "title": "New paper explores the relationship between UPI and untouchability (???)",
+  "url": "https://x.com/dexterfinbar/status/2093617003231899893"
+ },
+ "x.com/status/2093653184858476629": {
+  "description": "This paper is most likely AI-generated: 1. Global Anthropology and New Democracy University and Sawai Man Institution of Social Sciences doesn't exist, just checked. 2. Paper doesn't follow alphabetical order, how did Devari came before Deenanath?",
+  "fetchedAt": "2026-08-30T16:07:23+00:00",
+  "ok": true,
+  "title": "This paper is most likely AI-generated: 1. Global Anthropology and New Democracy University and Sawai Man…",
+  "url": "https://x.com/chaitiwari/status/2093653184858476629?s=46"
  },
  "xda-developers.com/89-million-steam-account-details-leak": {
   "description": "We're still not sure how it even happened.",

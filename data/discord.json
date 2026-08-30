@@ -27,7 +27,7 @@
   },
   "1088925292099289088": {
    "name": "dev-tooling",
-   "lastMessageId": "1542734729181405254"
+   "lastMessageId": "1543635715277979762"
   },
   "1088931065609080922": {
    "name": "infra-links",
@@ -47,11 +47,11 @@
   },
   "1123407753151516683": {
    "name": "fun-tools",
-   "lastMessageId": "1542136212868038777"
+   "lastMessageId": "1543229281151483924"
   },
   "1128790553123897364": {
    "name": "research-papers",
-   "lastMessageId": "1500570521631326510"
+   "lastMessageId": "1543175040726605924"
   },
   "1147968181152006174": {
    "name": "general",
@@ -75,7 +75,7 @@
   },
   "1178381917092073472": {
    "name": "memes",
-   "lastMessageId": "1505304994197274674"
+   "lastMessageId": "1543260466095067317"
   },
   "1178382171199782912": {
    "name": "ai-generated",
@@ -26776,6 +26776,79 @@
     }
    ],
    "said": "This reminds me of it’s pretty cool"
+  },
+  {
+   "id": "1543175040726605924",
+   "ch": "1128790553123897364",
+   "ts": "2026-08-29T08:26:40.515000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://arxiv.org/abs/2608.27454",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1543229281151483924",
+   "ch": "1123407753151516683",
+   "ts": "2026-08-29T12:02:12.440000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://www.bubbbly.com/bloom",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1543242572313395351",
+   "ch": "1178381917092073472",
+   "ts": "2026-08-29T12:55:01.300000+00:00",
+   "author": "AkhileshManda",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://x.com/dexterfinbar/status/2093617003231899893",
+     "text": null
+    },
+    {
+     "url": "https://twitter.com/dexterfinbar/status/2093617003231899893",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1543260466095067317",
+   "ch": "1178381917092073472",
+   "ts": "2026-08-29T14:06:07.510000+00:00",
+   "author": "_m_a_d_a_r_a.",
+   "said": "Hahaha yes",
+   "urls": [
+    {
+     "url": "https://x.com/chaitiwari/status/2093653184858476629?s=46",
+     "text": null
+    },
+    {
+     "url": "https://twitter.com/chaitiwari/status/2093653184858476629?s=46",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1543635715277979762",
+   "ch": "1088925292099289088",
+   "ts": "2026-08-30T14:57:13.887000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://github.com/rileycx/strafe",
+     "text": null
+    }
+   ]
   }
  ]
 }

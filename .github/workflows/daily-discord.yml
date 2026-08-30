@@ -19,6 +19,7 @@ permissions:
 jobs:
   index:
     runs-on: ubuntu-latest
+    timeout-minutes: 45          # a wedged fetch should fail, not idle for hours
     steps:
       - uses: actions/checkout@v4
 
@@ -46,17 +47,18 @@ jobs:
       - name: Rebuild the page
         run: python3 build-page.py
 
-      # vectors.f32 is 2.7 MB and rewritten whole on every change, so a daily
-      # commit of it would add roughly a gigabyte of git history a year. The
-      # page falls back to embedding in-browser when the row count does not
-      # match, so smart search still works between weekly rebuilds.
-      - name: Rebuild smart-search vectors (Sundays, or on demand)
+      # Rebuilt whenever the entry count moved, not on a calendar. The page
+      # falls back to embedding in-browser when the row count does not match,
+      # and at a few thousand entries that fallback locks the tab for a minute
+      # - so a stale vectors.f32 is a broken page, not a slower one.
+      - name: Rebuild smart-search vectors (only when the index moved)
         run: |
-          if [ "$(date -u +%u)" != "7" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            echo "not Sunday - leaving vectors.f32 alone"; exit 0
+          if python3 vectors-stale.py; then
+            pip install --quiet onnxruntime tokenizers numpy
+            python3 build-vectors.py
+          else
+            echo "vectors already match the index - nothing to rebuild"
           fi
-          pip install --quiet onnxruntime tokenizers numpy
-          python3 build-vectors.py
 
       - name: Commit
         run: |
@@ -67,5 +69,11 @@ jobs:
             echo "nothing new today"
           else
             git commit -m "Index new Discord links ($(date -u +%Y-%m-%d))"
-            git push
+            # the concurrency group serialises this job against itself, but a
+            # human commit landing mid-run would still reject the push
+            for i in 1 2 3; do
+              git push && break
+              echo "push rejected, rebasing on origin (attempt $i)"
+              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || exit 1
+            done
           fi
