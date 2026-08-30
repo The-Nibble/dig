@@ -268,9 +268,25 @@ def main():
                                            if c.get('parent') or c.get('name')})},
            'entityCount': len({e.get('url') and canonical(e['url']) or ('quote::' + e['title'])
                                for e in entries})}
-    blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
-
     lines = open(PAGE, encoding='utf-8').read().split('\n')
+
+    # This script is meant to be pure - same inputs, same page - but a fresh
+    # timestamp on every run broke that: index.html always differed, so the
+    # daily job committed even on days when nothing arrived. Keep the old stamp
+    # when nothing else moved, which also makes "last updated" mean the last
+    # time the index actually changed rather than the last time CI woke up.
+    for l in lines:
+        if l.startswith('const BOOTSTRAP ='):
+            try:
+                prev = json.loads(l[len('const BOOTSTRAP ='):].strip().rstrip(';'))
+                if {k: v for k, v in prev.items() if k != 'generatedAt'} == \
+                   {k: v for k, v in out.items() if k != 'generatedAt'}:
+                    out['generatedAt'] = prev['generatedAt']
+            except Exception:
+                pass                      # unreadable previous build: just restamp
+            break
+
+    blob = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
     for i, l in enumerate(lines):
         if l.startswith('const BOOTSTRAP ='):
             lines[i] = 'const BOOTSTRAP = ' + blob + ';'
