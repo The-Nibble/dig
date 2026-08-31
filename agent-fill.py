@@ -19,7 +19,7 @@ Usage:
   python3 agent-fill.py gaps.json [--batch 25] [--jobs 3] [--cli sarvam-code]
                                   [--limit 200] [--out filled.json]
 """
-import json, os, subprocess, sys, tempfile
+import json, os, shutil, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -52,13 +52,17 @@ Links (KEY <TAB> url):
 
 
 def run_batch(cli, items, n):
-    """One agent invocation over a slice of links. Returns whatever it named."""
-    out = tempfile.mktemp(suffix=f'.batch{n}.json')
+    """One agent invocation over a slice of links. Returns whatever it named.
+
+    Everything lives in a private directory: the agent needs a path it can
+    create, and mktemp would hand out a name anyone could win the race for.
+    """
+    workdir = tempfile.mkdtemp(prefix=f'agent-fill-{n}-')
+    out = os.path.join(workdir, 'named.json')
+    pfile = os.path.join(workdir, 'prompt.txt')
     links = '\n'.join(f"{k}\t{v['url']}" for k, v in items)
-    prompt = PROMPT.format(out=out, links=links)
-    with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as fh:
-        fh.write(prompt)
-        pfile = fh.name
+    with open(pfile, 'w', encoding='utf-8') as fh:
+        fh.write(PROMPT.format(out=out, links=links))
     cmd = [cli, 'exec', '--sandbox', 'workspace-write', '--skip-git-repo-check',
            '-c', 'sandbox_workspace_write.network_access=true', '-']
     try:
@@ -77,9 +81,7 @@ def run_batch(cli, items, n):
         print(f"  batch {n}: {type(e).__name__}: {e}", file=sys.stderr)
         return {}
     finally:
-        for p in (pfile, out):
-            try: os.unlink(p)
-            except OSError: pass
+        shutil.rmtree(workdir, ignore_errors=True)
 
 
 def main():

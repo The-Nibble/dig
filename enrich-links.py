@@ -157,7 +157,7 @@ def from_twitter(status_id):
 
 def from_arxiv(arxiv_id):
     """arXiv's Atom API, rather than scraping the abstract page."""
-    doc, _ = get(f'http://export.arxiv.org/api/query?id_list={arxiv_id}',
+    doc, _ = get(f'https://export.arxiv.org/api/query?id_list={arxiv_id}',
                  accept='application/atom+xml')
     def tag(name):
         m = re.search(rf'<{name}>(.*?)</{name}>', doc, re.S)

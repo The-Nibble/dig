@@ -47,7 +47,7 @@ def entity(url):
     if host == 'github.com':
         parts = [x for x in p.path.split('/') if x]
         if len(parts) >= 2 and parts[0].lower() not in GH_RESERVED:
-            repo = f"{parts[0]}/{re.sub(r'.git$','',parts[1])}".lower()
+            repo = f"{parts[0]}/{re.sub(r'[.]git$', '', parts[1])}".lower()
     return host, repo
 
 
@@ -157,7 +157,7 @@ def canonical(url):
     if host == 'github.com':
         parts = [x for x in path.split('/') if x]
         if len(parts) >= 2 and parts[0].lower() not in GH_RESERVED:
-            return f"github.com/{parts[0].lower()}/{re.sub(r'.git$', '', parts[1]).lower()}"
+            return f"github.com/{parts[0].lower()}/{re.sub(r'[.]git$', '', parts[1]).lower()}"
 
     keep = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True)
             if not _JUNK_PARAMS.match(k)]
@@ -166,8 +166,12 @@ def canonical(url):
     path = re.sub(r'/index\.(html?|php)$', '/', path)
     path = path.rstrip('/') or '/'
     # case-sensitivity is real on some paths, but cross-source dupes are far
-    # more common than two urls differing only by case
-    return urlunsplit(('', host, path.lower(), query.lower(), '')).lstrip('/')
+    # more common than two urls differing only by case - so the path is folded.
+    # The QUERY is not: its values are frequently case-sensitive identifiers (a
+    # VS Code extension id, a YouTube playlist, an archive node), and folding
+    # those merges unrelated pages - the exact failure this function is built to
+    # avoid. It is already deterministically sorted, so it stays as encoded.
+    return urlunsplit(('', host, path.lower(), query, '')).lstrip('/')
 
 
 # ---- description tidying --------------------------------------------------
