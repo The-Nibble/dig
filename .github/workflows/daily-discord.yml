@@ -47,33 +47,47 @@ jobs:
       - name: Rebuild the page
         run: python3 build-page.py
 
-      # Rebuilt whenever the entry count moved, not on a calendar. The page
-      # falls back to embedding in-browser when the row count does not match,
-      # and at a few thousand entries that fallback locks the tab for a minute
-      # - so a stale vectors.f32 is a broken page, not a slower one.
-      - name: Rebuild smart-search vectors (only when the index moved)
+      # The fingerprint covers every ordered title+description embedding input,
+      # so same-sized edits and reorders rebuild just like additions do.
+      - name: Rebuild smart-search vectors when the corpus changed
         run: |
-          if python3 vectors-stale.py; then
+          status=0
+          python3 vectors-stale.py || status=$?
+          if [ "$status" -eq 0 ]; then
             pip install --quiet onnxruntime tokenizers numpy
             python3 build-vectors.py
-          else
+          elif [ "$status" -eq 1 ]; then
             echo "vectors already match the index - nothing to rebuild"
+          else
+            echo "vector freshness check failed with status $status" >&2
+            exit "$status"
           fi
 
       - name: Commit
         run: |
           git config user.name  'nibble-indexer'
           git config user.email 'actions@users.noreply.github.com'
-          git add data/ index.html vectors.f32 2>/dev/null || true
+          git add data/ index.html vectors.f32 vectors.json
           if git diff --staged --quiet; then
             echo "nothing new today"
           else
             git commit -m "Index new Discord links ($(date -u +%Y-%m-%d))"
             # the concurrency group serialises this job against itself, but a
             # human commit landing mid-run would still reject the push
+            pushed=false
             for i in 1 2 3; do
-              git push && break
+              if git push; then
+                pushed=true
+                break
+              fi
               echo "push rejected, rebasing on origin (attempt $i)"
+              if [ "$i" -eq 3 ]; then
+                break
+              fi
               git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || exit 1
             done
+            if [ "$pushed" != true ]; then
+              echo "failed to push the generated index after 3 attempts" >&2
+              exit 1
+            fi
           fi

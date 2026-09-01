@@ -9,21 +9,27 @@ float32, N * 384, in entry order) next to it.
 Deps (not stdlib): onnxruntime, tokenizers, numpy. Run after build-index.py:
     python3 build-vectors.py
 """
-import re, json, os, sys, random
+import json, os, sys, random
 import numpy as np
 import onnxruntime as ort
 from tokenizers import Tokenizer
+
+from vector_corpus import fingerprint, read_bootstrap, texts_for
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 M = os.path.join(HERE, 'models', 'Xenova', 'all-MiniLM-L6-v2')
 DIM = 384
 
-# entries, in the exact order they are inlined in index.html
-html = open(os.path.join(HERE, 'index.html'), encoding='utf-8').read()
-data = json.loads(re.search(r'const BOOTSTRAP = (\{.*?\});\n', html).group(1))
+# Entries are embedded in the exact order inlined in index.html. The shared
+# fingerprint prevents a same-sized but reordered or edited corpus from being
+# paired with stale vectors.
+data = read_bootstrap(os.path.join(HERE, 'index.html'))
 entries = data['entries']
-# must match the worker: (title + '. ' + (description||'')).slice(0, 400)
-texts = [((e['title'] + '. ' + (e.get('description') or ''))[:400]) for e in entries]
+texts = texts_for(entries)
+corpus_hash = fingerprint(entries)
+if data.get('vectorHash') != corpus_hash:
+    raise SystemExit('index.html vectorHash does not match its embedding inputs; '
+                     'run build-page.py first')
 
 tok = Tokenizer.from_file(os.path.join(M, 'tokenizer.json'))
 tok.enable_truncation(max_length=256)
@@ -101,6 +107,15 @@ print(file=sys.stderr)
 out_path = os.path.join(HERE, 'vectors.f32')
 vecs.tofile(out_path)
 print(f"wrote {out_path}: {vecs.shape} -> {os.path.getsize(out_path)/1024/1024:.2f} MB", file=sys.stderr)
+
+meta_path = os.path.join(HERE, 'vectors.json')
+tmp_path = meta_path + '.tmp'
+with open(tmp_path, 'w', encoding='utf-8') as fh:
+    json.dump({'hash': corpus_hash, 'rows': len(entries), 'dim': DIM}, fh,
+              separators=(',', ':'))
+    fh.write('\n')
+os.replace(tmp_path, meta_path)
+print(f"wrote {meta_path}: {corpus_hash}", file=sys.stderr)
 
 # sanity: norms ~1, and a couple of nearest neighbours make sense
 norms = np.linalg.norm(vecs, axis=1)

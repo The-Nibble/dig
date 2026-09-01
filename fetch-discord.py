@@ -124,9 +124,15 @@ def visible(ch, gid):
     return True
 
 
-def archived(cid):
-    """Public archived threads under one channel, paging back through time."""
+def archived(cid, since=None, known=()):
+    """Return archived threads newer than a saved archive timestamp.
+
+    A thread can be created and auto-archived between daily runs, so parents
+    must be checked repeatedly. Pages are newest-first; once a saved timestamp
+    is reached, everything older was covered by an earlier successful scan.
+    """
     before, out = None, []
+    newest = since
     while True:
         q = f'/channels/{cid}/threads/archived/public?limit=100'
         if before:
@@ -134,16 +140,24 @@ def archived(cid):
         try:
             d = api(q, soft=True)
         except Denied:
-            return out
+            return out, None
         batch = d.get('threads') or []
-        out += batch
+        stamps = [(th.get('thread_metadata') or {}).get('archive_timestamp')
+                  for th in batch]
+        if stamps:
+            newest = max([stamp for stamp in stamps if stamp] + ([newest] if newest else []))
+        out += [th for th, stamp in zip(batch, stamps)
+                if not since or not stamp or stamp > since
+                or (stamp == since and th['id'] not in known)]
+        if since and any(stamp and stamp <= since for stamp in stamps):
+            return out, newest
         before = (batch[-1].get('thread_metadata') or {}).get('archive_timestamp') if batch else None
         if not d.get('has_more') or not before:
-            return out
+            return out, newest
 
 
 def discover(gid, store, backfill):
-    """Every public, readable place in the server that can hold a message."""
+    """Every public, readable place plus archive cursors to commit on success."""
     chans = api(f'/guilds/{gid}/channels')
     by_id = {c['id']: c for c in chans}
     parents, found = {}, []
@@ -169,21 +183,21 @@ def discover(gid, store, backfill):
             found.append({'id': th['id'], 'name': th.get('name'), 'type': th['type'],
                           'parent': parents[th['parent_id']]})
 
-    # An archived thread cannot gain a message without being unarchived, which
-    # puts it back in the active list above - so each parent needs this once.
-    scanned = set(store.setdefault('archivedScanned', []))
+    cursors = store.setdefault('archiveCursors', {})
+    archive_updates = {}
     for cid, pname in parents.items():
-        if cid in scanned and not backfill:
-            continue
-        for th in archived(cid):
+        since = None if backfill else cursors.get(cid)
+        threads, newest = archived(cid, since, store.get('channels', {}))
+        if newest:
+            archive_updates[cid] = newest
+        for th in threads:
             if th['id'] in seen:
                 continue
             seen.add(th['id'])
             found.append({'id': th['id'], 'name': th.get('name'),
-                          'type': th.get('type'), 'parent': pname})
-        scanned.add(cid)
-    store['archivedScanned'] = sorted(scanned)
-    return found
+                          'type': th.get('type'), 'parent': pname,
+                          'archiveParent': cid})
+    return found, archive_updates
 
 
 # ---- harvest --------------------------------------------------------------
@@ -219,7 +233,7 @@ def extract(content):
 def load():
     """The harvest, migrated forward from older shapes if needed."""
     if not os.path.exists(STORE):
-        return {'guildId': None, 'channels': {}, 'archivedScanned': [], 'messages': []}
+        return {'guildId': None, 'channels': {}, 'archiveCursors': {}, 'messages': []}
     st = json.load(open(STORE, encoding='utf-8'))
     if 'channels' not in st:                       # pre-multi-channel harvest
         ch = st.get('channelId')
@@ -227,7 +241,7 @@ def load():
         for m in st.get('messages', []):
             m.setdefault('ch', ch)
         st.pop('channelId', None); st.pop('lastMessageId', None)
-    st.setdefault('archivedScanned', [])
+    st.setdefault('archiveCursors', {})
     return st
 
 
@@ -306,7 +320,7 @@ def harvest_channel(info, store, known, backfill, limit):
     except Denied:
         print(f"  {label}: no read access, skipped", file=sys.stderr)
         meta['denied'] = True
-        return 0
+        return None
     meta.pop('denied', None)
     # the cursor advances past every message SEEN, not every message kept, or
     # a run of link-free chat would be re-fetched forever
@@ -332,10 +346,16 @@ def main():
 
     if GUILD:
         store['guildId'] = store.get('guildId') or GUILD
-        targets = discover(GUILD, store, backfill)
+        targets, archive_updates = discover(GUILD, store, backfill)
         print(f"discovered {len(targets)} public channels and threads", file=sys.stderr)
     else:
         targets = [{'id': c} for c in CHANNELS]
+        archive_updates = {}
+    skipped_archive_parents = {
+        t['archiveParent'] for t in targets
+        if t.get('archiveParent') and
+        (t['id'] in EXCLUDE or (only and t['id'] not in only))
+    }
     targets = [t for t in targets if t['id'] not in EXCLUDE and (not only or t['id'] in only)]
     if not targets:
         raise SystemExit('nothing to harvest - check --only, DISCORD_EXCLUDE_CHANNELS, '
@@ -348,15 +368,29 @@ def main():
         return
 
     total = 0
+    failed_archive_parents = skipped_archive_parents
     for n, t in enumerate(targets, 1):
         print(f"[{n}/{len(targets)}]", end=' ', file=sys.stderr)
         try:
-            total += harvest_channel(t, store, known, backfill, limit)
+            kept = harvest_channel(t, store, known, backfill, limit)
+            if kept is None:
+                if t.get('archiveParent'):
+                    failed_archive_parents.add(t['archiveParent'])
+            else:
+                total += kept
         except KeyboardInterrupt:
             save(store)
             raise SystemExit(f"\ninterrupted - kept {total} new messages, "
                              f"rerun to carry on from here")
         save(store)
+
+    for cid, cursor in archive_updates.items():
+        if cid not in failed_archive_parents:
+            store['archiveCursors'][cid] = cursor
+    # Migration from the one-shot scheme is complete only after the recurring
+    # scan finishes; an interrupted run safely repeats work using message IDs.
+    store.pop('archivedScanned', None)
+    save(store)
 
     nlinks = sum(len(m['urls']) for m in store['messages'])
     per = Counter(m.get('ch') for m in store['messages'])

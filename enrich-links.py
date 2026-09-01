@@ -25,8 +25,10 @@ that render their title in JavaScript. Something that can actually fetch the pag
 fills those in. Merged records are marked `via` so an agent-sourced blurb is
 never mistaken for the page's own metadata, and a plain rerun will not clobber it.
 """
-import gzip, html as htmllib, io, json, os, re, sys, time
-import urllib.request, urllib.error, urllib.parse
+import contextlib, http.client, html as htmllib, ipaddress, json, os, re, signal
+import socket, ssl, sys, time
+import urllib.parse
+import zlib
 from datetime import datetime, timezone, timedelta
 
 from taxonomy import canonical, entity, is_furniture, tidy_desc
@@ -48,24 +50,157 @@ BOILERPLATE = re.compile(
 
 TIMEOUT = 15
 MAX_BYTES = 300_000        # meta tags live in <head>; no need for the whole page
+MAX_REDIRECTS = 3
+TOTAL_BUDGET_SECONDS = int(os.environ.get('ENRICH_BUDGET_SECONDS', 40 * 60))
 RETRY_AFTER_DAYS = 30      # a dead link stays dead; check again next month
 
 
-def get(url, accept='text/html,application/xhtml+xml,*/*;q=0.8'):
-    req = urllib.request.Request(url, headers={
+class UnsafeDestination(ValueError):
+    """A URL resolves somewhere an untrusted Discord link must not reach."""
+
+
+class FetchError(RuntimeError):
+    """A remote response could not be used for enrichment."""
+
+
+@contextlib.contextmanager
+def request_deadline(seconds):
+    """Bound the whole request, not only periods of socket inactivity."""
+    if not hasattr(signal, 'SIGALRM'):
+        yield
+        return
+    previous = signal.getsignal(signal.SIGALRM)
+
+    def expired(_signum, _frame):
+        raise TimeoutError(f'fetch exceeded {seconds}s')
+
+    signal.signal(signal.SIGALRM, expired)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def public_address(host, port):
+    """Resolve once, reject mixed/private answers, and return a pinned address."""
+    try:
+        answers = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    except socket.gaierror as error:
+        raise FetchError(f'could not resolve {host}: {error}') from error
+    addresses = []
+    for answer in answers:
+        raw = answer[4][0].split('%', 1)[0]
+        address = ipaddress.ip_address(raw)
+        if not address.is_global:
+            raise UnsafeDestination(f'{host} resolves to non-public address {address}')
+        if raw not in addresses:
+            addresses.append(raw)
+    if not addresses:
+        raise FetchError(f'{host} resolved without an address')
+    return addresses[0]
+
+
+class _PinnedHTTPConnection(http.client.HTTPConnection):
+    def __init__(self, host, address, port, timeout):
+        super().__init__(host, port=port, timeout=timeout)
+        self._address = address
+
+    def connect(self):
+        self.sock = socket.create_connection(
+            (self._address, self.port), self.timeout, self.source_address)
+
+
+class _PinnedHTTPSConnection(http.client.HTTPSConnection):
+    def __init__(self, host, address, port, timeout):
+        super().__init__(host, port=port, timeout=timeout,
+                         context=ssl.create_default_context())
+        self._address = address
+
+    def connect(self):
+        self.sock = socket.create_connection(
+            (self._address, self.port), self.timeout, self.source_address)
+        self.sock = self._context.wrap_socket(self.sock, server_hostname=self.host)
+
+
+def open_public(url, headers):
+    """Open one validated URL without a second, rebindable DNS lookup."""
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme not in ('http', 'https') or not parsed.hostname:
+        raise UnsafeDestination('only absolute http and https URLs are allowed')
+    if parsed.username or parsed.password:
+        raise UnsafeDestination('credentials in URLs are not allowed')
+    try:
+        port = parsed.port or (443 if parsed.scheme == 'https' else 80)
+    except ValueError as error:
+        raise UnsafeDestination(f'invalid port in {url}') from error
+    address = public_address(parsed.hostname, port)
+    cls = _PinnedHTTPSConnection if parsed.scheme == 'https' else _PinnedHTTPConnection
+    conn = cls(parsed.hostname, address, port, TIMEOUT)
+    path = urllib.parse.urlunsplit(('', '', parsed.path or '/', parsed.query, ''))
+    conn.request('GET', path, headers=headers)
+    return conn, conn.getresponse()
+
+
+def read_limited(response):
+    """Read at most MAX_BYTES after decompression, including gzip bombs."""
+    decoder = (zlib.decompressobj(16 + zlib.MAX_WBITS)
+               if response.getheader('Content-Encoding', '').lower() == 'gzip' else None)
+    out = bytearray()
+    wire_bytes = 0
+    while len(out) < MAX_BYTES:
+        chunk = response.read(min(16_384, MAX_BYTES - wire_bytes + 1))
+        if not chunk:
+            break
+        wire_bytes += len(chunk)
+        if wire_bytes > MAX_BYTES:
+            raise FetchError(f'response exceeds {MAX_BYTES} compressed bytes')
+        remaining = MAX_BYTES - len(out)
+        out.extend(decoder.decompress(chunk, remaining) if decoder else chunk[:remaining])
+    return bytes(out)
+
+
+def get(url, accept='text/html,application/xhtml+xml,*/*;q=0.8', headers=None):
+    request_headers = {
         'User-Agent': UA, 'Accept': accept,
         'Accept-Language': 'en-US,en;q=0.9', 'Accept-Encoding': 'gzip',
-    })
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-        ctype = r.headers.get('Content-Type', '')
-        raw = r.read(MAX_BYTES)
-        if r.headers.get('Content-Encoding') == 'gzip':
-            try: raw = gzip.GzipFile(fileobj=io.BytesIO(raw)).read()
-            except Exception: pass          # truncated gzip: keep what decoded
-        m = re.search(r'charset=([\w-]+)', ctype, re.I)
-        enc = (m.group(1) if m else 'utf-8')
-        try: return raw.decode(enc, 'replace'), ctype
-        except LookupError: return raw.decode('utf-8', 'replace'), ctype
+        **(headers or {}),
+    }
+    with request_deadline(TIMEOUT):
+        original_host = urllib.parse.urlsplit(url).hostname
+        current = url
+        for redirect_count in range(MAX_REDIRECTS + 1):
+            redirected_headers = dict(request_headers)
+            if urllib.parse.urlsplit(current).hostname != original_host:
+                redirected_headers.pop('Authorization', None)
+            conn = response = None
+            try:
+                conn, response = open_public(current, redirected_headers)
+                if response.status in (301, 302, 303, 307, 308):
+                    location = response.getheader('Location')
+                    if not location:
+                        raise FetchError(f'HTTP {response.status} without Location from {current}')
+                    if redirect_count == MAX_REDIRECTS:
+                        raise FetchError(f'more than {MAX_REDIRECTS} redirects from {url}')
+                    current = urllib.parse.urljoin(current, location)
+                    continue
+                if response.status >= 400:
+                    raise FetchError(f'HTTP {response.status} from {current}')
+                ctype = response.getheader('Content-Type', '')
+                raw = read_limited(response)
+            finally:
+                if response:
+                    response.close()
+                if conn:
+                    conn.close()
+            m = re.search(r'charset=([\w-]+)', ctype, re.I)
+            enc = m.group(1) if m else 'utf-8'
+            try:
+                return raw.decode(enc, 'replace'), ctype
+            except LookupError:
+                return raw.decode('utf-8', 'replace'), ctype
+    raise FetchError(f'could not fetch {url}')
 
 
 def meta_tag(doc, *names):
@@ -93,12 +228,10 @@ def scrape(url):
 
 def from_github(repo):
     tok = os.environ.get('GITHUB_TOKEN', '').strip()
-    req = urllib.request.Request(
-        f'https://api.github.com/repos/{repo}',
-        headers={'User-Agent': UA, 'Accept': 'application/vnd.github+json',
-                 **({'Authorization': 'Bearer ' + tok} if tok else {})})
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-        d = json.loads(r.read().decode())
+    doc, _ = get(f'https://api.github.com/repos/{repo}',
+                 accept='application/vnd.github+json',
+                 headers=({'Authorization': 'Bearer ' + tok} if tok else None))
+    d = json.loads(doc)
     return d.get('full_name') or repo, d.get('description')
 
 
@@ -211,13 +344,15 @@ def gaps(cache, path):
     """Links a fetch could not name. An agent that can read the page fills these."""
     out = {k: {'url': c.get('url'), 'error': c.get('error')}
            for k, c in cache.items() if not c.get('title')}
-    json.dump(out, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    with open(path, 'w', encoding='utf-8') as fh:
+        json.dump(out, fh, ensure_ascii=False, indent=1)
     print(f"{len(out)} links still unnamed -> {path}", file=sys.stderr)
 
 
 def merge(cache, path):
     """Fold in {canonical: {title, description}} researched elsewhere."""
-    got = json.load(open(path, encoding='utf-8'))
+    with open(path, encoding='utf-8') as fh:
+        got = json.load(fh)
     now = datetime.now(timezone.utc).isoformat(timespec='seconds')
     n = 0
     for key, rec in got.items():
@@ -238,6 +373,15 @@ def merge(cache, path):
     return n
 
 
+def save_cache(cache):
+    """Checkpoint atomically so a timeout never discards completed fetches."""
+    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
+    tmp = CACHE + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as fh:
+        json.dump(cache, fh, ensure_ascii=False, indent=1, sort_keys=True)
+    os.replace(tmp, CACHE)
+
+
 def main():
     args = sys.argv[1:]
     retry = '--retry' in args
@@ -246,17 +390,21 @@ def main():
     # that "worked" - matched against the stored url
     refetch = re.compile(args[args.index('--refetch') + 1], re.I) if '--refetch' in args else None
 
-    cache = json.load(open(CACHE, encoding='utf-8')) if os.path.exists(CACHE) else {}
+    if os.path.exists(CACHE):
+        with open(CACHE, encoding='utf-8') as fh:
+            cache = json.load(fh)
+    else:
+        cache = {}
     if '--gaps' in args:
         return gaps(cache, args[args.index('--gaps') + 1])
     if '--merge' in args:
         merge(cache, args[args.index('--merge') + 1])
-        with open(CACHE, 'w', encoding='utf-8') as fh:
-            json.dump(cache, fh, ensure_ascii=False, indent=1, sort_keys=True)
+        save_cache(cache)
         return print(f"wrote {CACHE}", file=sys.stderr)
     if not os.path.exists(HARVEST):
         raise SystemExit(f'no {HARVEST} - run fetch-discord.py first')
-    harvest = json.load(open(HARVEST, encoding='utf-8'))
+    with open(HARVEST, encoding='utf-8') as fh:
+        harvest = json.load(fh)
 
     wanted = {}                     # canonical -> a real url to fetch
     for m in harvest['messages']:
@@ -284,8 +432,13 @@ def main():
     if limit:
         todo = todo[:limit]
 
-    ok = fail = 0
+    ok = fail = processed = 0
+    started = time.monotonic()
     for i, (key, url) in enumerate(todo, 1):
+        if time.monotonic() - started >= TOTAL_BUDGET_SECONDS:
+            print(f'\nstopped cleanly after {TOTAL_BUDGET_SECONDS}s; '
+                  f'{len(todo) - processed} links remain for the next run', file=sys.stderr)
+            break
         print(f"\r  {i}/{len(todo)} {url[:70]:<70}", end='', file=sys.stderr)
         rec = {'url': url, 'fetchedAt': now.isoformat(timespec='seconds')}
         try:
@@ -302,6 +455,8 @@ def main():
             rec['error'] = f'{type(e).__name__}: {e}'[:200]
             fail += 1
         cache[key] = rec
+        save_cache(cache)
+        processed += 1
         time.sleep(0.2)             # be a good citizen; this is not a crawler
     print(file=sys.stderr)
 
@@ -313,14 +468,12 @@ def main():
             del cache[k]
         print(f"pruned {len(dead)} orphaned cache keys", file=sys.stderr)
 
-    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
-    with open(CACHE, 'w', encoding='utf-8') as fh:
-        json.dump(cache, fh, ensure_ascii=False, indent=1, sort_keys=True)
+    save_cache(cache)
 
     titled = sum(1 for c in cache.values() if c.get('title'))
     blurbed = sum(1 for c in cache.values() if c.get('description'))
     print(f"\n=== LINK ENRICHMENT ===", file=sys.stderr)
-    print(f"distinct links in harvest: {len(wanted)}   fetched now: {len(todo)} "
+    print(f"distinct links in harvest: {len(wanted)}   fetched now: {processed} "
           f"(ok {ok}, failed {fail})", file=sys.stderr)
     print(f"cache: {len(cache)} links, {titled} with a title, {blurbed} with a blurb",
           file=sys.stderr)
