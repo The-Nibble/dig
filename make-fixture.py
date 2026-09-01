@@ -1,4 +1,4 @@
-"""Synthesise a data/discord.json so the pipeline can be tested without a token.
+"""Synthesise a Discord harvest so the pipeline can be tested without a token.
 
 Builds a harvest that exercises the cases that actually break things: the same
 link arriving in Discord and in the newsletter, a youtu.be short link against a
@@ -6,15 +6,29 @@ full watch url, tracking params, the same link in two different channels, chat
 furniture that must be dropped, messages with and without a human blurb, and
 channel names that should override the kind heuristic.
 
-    python3 make-fixture.py && python3 enrich-links.py && python3 build-page.py
+    python3 make-fixture.py --out /tmp/discord-fixture.json
 
-Overwrites data/discord.json. Never run this over a real harvest.
+The output path is required so an ordinary invocation cannot overwrite the
+tracked real harvest.
 """
 import json, os, random, re, sys
 from datetime import date, timedelta
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-STORE = os.path.join(HERE, 'data', 'discord.json')
+
+
+def option(name, default):
+    if name not in sys.argv:
+        return default
+    i = sys.argv.index(name)
+    if i + 1 >= len(sys.argv):
+        raise SystemExit(f'{name} requires a path')
+    return sys.argv[i + 1]
+
+
+STORE = option('--out', None)
+if not STORE:
+    raise SystemExit('--out is required; use a temporary path outside data/discord.json')
 
 if os.path.exists(STORE):
     cur = json.load(open(STORE, encoding='utf-8'))
@@ -82,12 +96,13 @@ add('https://simonwillison.net/2024/Dec/31/llms-in-2024/', 'best writeup of the 
     '2026-02-14', 'shreya', cid='900000000000000004')
 
 msgs.sort(key=lambda m: int(m['id']))
-os.makedirs(os.path.dirname(STORE), exist_ok=True)
-json.dump({'fixture': True, 'guildId': '900000000000000001',
-           'channels': {cid: {'name': n, 'lastMessageId': msgs[-1]['id']}
-                        for cid, n in CHANNELS.items()},
-           'messages': msgs},
-          open(STORE, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+os.makedirs(os.path.dirname(os.path.abspath(STORE)), exist_ok=True)
+with open(STORE, 'w', encoding='utf-8') as fh:
+    json.dump({'fixture': True, 'guildId': '900000000000000001',
+               'channels': {cid: {'name': n, 'lastMessageId': msgs[-1]['id']}
+                            for cid, n in CHANNELS.items()},
+               'messages': msgs}, fh, ensure_ascii=False, indent=1)
 print(f"wrote {STORE}: {len(msgs)} synthetic messages across {len(CHANNELS)} channels, "
       f"{sum(len(m['urls']) for m in msgs)} links", file=sys.stderr)
-print("next: python3 enrich-links.py && python3 build-page.py", file=sys.stderr)
+print(f"next: copy index.html to a temporary path, then run "
+      f"python3 build-page.py --discord {STORE} --page TEMP_INDEX", file=sys.stderr)

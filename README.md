@@ -127,22 +127,38 @@ Two more `enrich-links.py` flags exist for when a handler improves:
 `--refetch '<url pattern>'` throws away old answers even where they "worked",
 and `--prune` drops cache keys a canonicalisation change has orphaned.
 
-No token to hand? `python3 make-fixture.py` writes a synthetic harvest that
-exercises the whole pipeline - cross-source duplicates, short links, tracking
-params, chat furniture - so the merge can be tested end to end offline.
+Discord links are untrusted input. Enrichment only connects to public IP
+addresses, pins each DNS result for the connection, revalidates every redirect,
+and bounds redirects, response size, decompression, and request time. It also
+checkpoints the cache after every link and stops before the workflow timeout, so
+an interrupted run keeps the metadata it already fetched.
 
-If the entry count changed, regenerate the precomputed smart-search vectors
-(needs `onnxruntime`, `tokenizers`, `numpy`):
+No token to hand? Build against a synthetic harvest in a temporary directory.
+The tracked harvest and page are never touched:
+
+```sh
+fixture_dir=$(mktemp -d)
+python3 make-fixture.py --out "$fixture_dir/discord.json"
+cp index.html "$fixture_dir/index.html"
+python3 build-page.py --discord "$fixture_dir/discord.json" \
+  --page "$fixture_dir/index.html"
+```
+
+The fixture covers cross-source duplicates, short links, tracking parameters,
+chat furniture and channel-specific classification.
+
+If the ordered title-and-description corpus changed, regenerate the precomputed
+smart-search vectors and their fingerprint metadata (needs `onnxruntime`,
+`tokenizers`, `numpy`):
 
 ```sh
 python3 build-vectors.py   # embeds the corpus with the vendored model -> vectors.f32
 ```
 
-This matters more than it used to. The page checks `vectors.f32` against the
-corpus size and falls back to embedding in the browser when they disagree - and
-at a few thousand entries that fallback locks the tab for a minute. A stale
-vectors file is a broken page, not a slower one, so CI rebuilds whenever the
-entry count moves rather than on a schedule:
+This matters more than it used to. The page checks `vectors.f32` against an
+exact hash of every ordered embedding input and falls back to embedding in the
+browser when they disagree. A stale vectors file is a broken page, not a slower
+one, so CI rebuilds for same-sized edits and reorders as well as additions:
 
 ```sh
 python3 vectors-stale.py   # exit 0 = rebuild needed, 1 = already matches
@@ -151,9 +167,9 @@ python3 vectors-stale.py   # exit 0 = rebuild needed, 1 = already matches
 That check is stdlib-only on purpose, so the daily job can answer the question
 without first installing `onnxruntime`.
 
-The row count also rides in the fetch url (`vectors.f32?n=3471`). Without that,
-`cache: 'force-cache'` would let a returning visitor keep serving themselves the
-previous file, fail the size check, and land in the in-browser fallback.
+The corpus hash also rides in the fetch URL. Without that, `cache: 'force-cache'`
+could serve an older same-sized vector file and silently rank entries with the
+wrong embeddings.
 
 ### Channels
 
@@ -165,10 +181,10 @@ the next morning with no config change. Private channels are skipped by the
 too, and anything the token cannot actually read is skipped with a note rather
 than failing the run.
 
-Archived threads are enumerated once per parent channel, since an archived
-thread cannot gain a message without being unarchived - which puts it back in
-the active list. Each channel and thread keeps its own cursor, so a newly
-discovered one backfills only itself.
+Archived threads are checked on every run with a per-parent archive timestamp.
+That catches short-lived threads created and auto-archived between daily runs
+without walking old archives again. Each channel and thread also keeps its own
+message cursor, so a newly discovered one backfills only itself.
 
 A channel whose name says what it holds overrides the kind heuristic - a link in
 `#reads` is filed as a Read even when it points at GitHub. Forum posts are

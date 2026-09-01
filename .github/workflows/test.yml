@@ -1,0 +1,44 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python tests and syntax
+        run: |
+          python3 -m unittest discover -s tests
+          python3 -m compileall -q *.py tests
+
+      - name: Deterministic page build
+        run: |
+          python3 build-page.py
+          git diff --exit-code -- index.html
+
+      - name: JavaScript syntax
+        run: sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d;/^const BOOTSTRAP =/d' | node --check
+
+      - name: Vector fingerprint
+        run: |
+          status=0
+          python3 vectors-stale.py || status=$?
+          if [ "$status" -eq 0 ]; then
+            echo "vectors are stale" >&2
+            exit 1
+          fi
+          if [ "$status" -ne 1 ]; then
+            echo "vector freshness check failed with status $status" >&2
+            exit "$status"
+          fi

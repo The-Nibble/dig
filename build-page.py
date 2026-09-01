@@ -11,6 +11,7 @@ same page. That is what lets the daily job rebuild without the archive.
 Usage:
   python3 build-page.py
   python3 build-page.py --json out.json   # also dump the merged index
+  python3 build-page.py --discord fixture.json --page /tmp/index.html
 """
 import gzip, json, os, re, sys
 from collections import Counter, defaultdict
@@ -19,14 +20,25 @@ from datetime import datetime, timezone
 
 from taxonomy import (KIND_META, TAG_META, canonical, entity, is_furniture, is_job,
                       tags_for, tidy_desc)
+from vector_corpus import fingerprint
+
+def option(name, default):
+    if name not in sys.argv:
+        return default
+    i = sys.argv.index(name)
+    if i + 1 >= len(sys.argv):
+        raise SystemExit(f'{name} requires a path')
+    return sys.argv[i + 1]
+
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PAGE = os.path.join(HERE, 'index.html')
+PAGE = option('--page', os.path.join(HERE, 'index.html'))
 D = os.path.join(HERE, 'data')
+DISCORD = option('--discord', os.path.join(D, 'discord.json'))
 
 
 def load(name, default=None):
-    p = os.path.join(D, name)
+    p = DISCORD if name == 'discord.json' else os.path.join(D, name)
     if not os.path.exists(p):
         return default
     return json.load(open(p, encoding='utf-8'))
@@ -110,13 +122,17 @@ def discord_entries(harvest, meta):
         if said is None:
             said = re.sub(r'https?://\S+', ' ', m.get('content') or '')
         said = re.sub(r'\s+', ' ', said).strip(' -–—:•|')
+        seen_keys = set()
         for u in m['urls']:
             url = u['url']
             # a vacancy is not an archive entry; the newsletter's own curated
             # links are left alone, since those were a deliberate choice
-            if is_furniture(url) or is_job(url) or not canonical(url):
-                continue
             key = canonical(url)
+            if is_furniture(url) or is_job(url) or not key or key in seen_keys:
+                continue
+            # Discord often adds an embed whose URL is a mirror of the URL in
+            # the message. It is one sighting, not "also in" the same channel.
+            seen_keys.add(key)
             mm = meta.get(key) or {}
             host, repo = entity(url)
             # a link text or an og:title that is itself a url names nothing;
@@ -257,6 +273,7 @@ def main():
     tags.sort(key=lambda x: (-x['count'], x['slug']))
 
     out = {'generatedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+           'vectorHash': fingerprint(entries),
            'editions': nib['editions'], 'entries': entries, 'tags': tags,
            'sources': {'nibble': sum(1 for e in entries if e['src'] == 'nibble'),
                        'discord': sum(1 for e in entries if e['src'] == 'discord'),
@@ -321,10 +338,15 @@ def main():
     pr(f"index data: {len(blob.encode())/1024:.1f} KB  |  index.html: {len(page_bytes)/1024:.1f} KB "
        f"({len(gzip.compress(page_bytes))/1024:.1f} KB gzipped)")
     vec = os.path.join(HERE, 'vectors.f32')
+    vec_meta = os.path.join(HERE, 'vectors.json')
     if os.path.exists(vec):
-        rows = os.path.getsize(vec) // (384 * 4)
-        if rows != len(entries):
-            pr(f"\n! vectors.f32 holds {rows} rows, index now has {len(entries)}."
+        size = os.path.getsize(vec)
+        try:
+            vector_meta = json.load(open(vec_meta, encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            vector_meta = {}
+        if size != len(entries) * 384 * 4 or vector_meta.get('hash') != out['vectorHash']:
+            pr(f"\n! vectors.f32 or vectors.json does not match the current corpus."
                f"\n  The page falls back to embedding in-browser until you run build-vectors.py.")
 
 
