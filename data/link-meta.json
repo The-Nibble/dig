@@ -2677,6 +2677,13 @@
   "title": "An illustrated guide to Amazon VPCs",
   "url": "https://www.ducktyped.org/p/why-is-it-called-a-cloud-if-its-not"
  },
+ "dwarkesh.com/p/openai-huggingface": {
+  "description": "The whole OpenAI/Hugging Face story in plain English.",
+  "fetchedAt": "2026-09-03T17:10:39+00:00",
+  "ok": true,
+  "title": "The Rise and Fall of Agent Civilizations",
+  "url": "https://www.dwarkesh.com/p/openai-huggingface"
+ },
  "dylanhuang.com/blog/closing-my-startup": {
   "description": "By \"all,\" I mean everything: core product, failed pivots, miscellaneous.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -5457,6 +5464,13 @@
   "ok": false,
   "url": "https://www.kadoa.com/joblens"
  },
+ "kami.tw93.fun/": {
+  "description": "Kami - a warm parchment design system for AI-assisted professional documents, shaped by one accent color, serif-led hierarchy, and editorial whitespace.",
+  "fetchedAt": "2026-09-03T17:10:39+00:00",
+  "ok": true,
+  "title": "Kami: Document Design System for AI Agents",
+  "url": "https://kami.tw93.fun/"
+ },
  "karpathy.ai/zero-to-hero.html": {
   "description": null,
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -5879,6 +5893,20 @@
   "ok": true,
   "title": "Large Language Model Agents MOOC",
   "url": "https://llmagents-learning.org/f24"
+ },
+ "lnkd.in/dmd3pifg": {
+  "description": "This link will take you to a page that’s not on LinkedIn.",
+  "fetchedAt": "2026-09-03T17:10:39+00:00",
+  "ok": true,
+  "title": "LinkedIn",
+  "url": "https://lnkd.in/dmd3PiFg"
+ },
+ "lnkd.in/p/drfp_rf7": {
+  "description": "This Saturday, I am hosting Research on Tap with Udayan Walvekar in Indiranagar. 10 people, intimate setting, and one research paper around self-improving agentic systems. The idea is simple: read the paper beforehand, show up, and spend a couple of hours debating the ideas instead of doing the usual surface-level meetup conversations. Should be a fun one. RSVP: https://lnkd.in/dmd3PiFg.",
+  "fetchedAt": "2026-09-03T17:10:39+00:00",
+  "ok": true,
+  "title": "This Saturday, I am hosting Research on Tap with Udayan Walvekar in Indiranagar. 10 people, intimate setting, and one research paper around self-improving agent",
+  "url": "https://lnkd.in/p/drFP_Rf7"
  },
  "lobste.rs/": {
   "description": "A computing-focused community centered around link aggregation and discussion.",
@@ -6980,6 +7008,13 @@
   "fetchedAt": "2026-08-31T14:02:39+00:00",
   "ok": false,
   "url": "https://www.nytimes.com/2024/03/07/us/voyager-1-nasa-mission.html?smid=url-share&unlocked_article_code=1.a00.l46B.BEaTxh3R8783"
+ },
+ "nytimes.com/2026/08/24/world/europe/russia-drones-autonomous-ai-kill-ukraine-war.html": {
+  "description": "An attack by what Ukrainian officials said was a Russian drone with an Nvidia chip presages a dystopian future of weaponry untethered to humans.",
+  "fetchedAt": "2026-09-03T17:10:39+00:00",
+  "ok": true,
+  "title": "A Drone Killed Three Ukrainians. It Was Guided Entirely by A.I.",
+  "url": "https://www.nytimes.com/2026/08/24/world/europe/russia-drones-autonomous-ai-kill-ukraine-war.html"
  },
  "observablehq.com/@chaosalchemist/wasm-playground": {
   "description": "Https://en.wikipedia.org/wiki/WebAssembly https://developer.mozilla.org/en-US/docs/WebAssembly Toolchains Runtime Wasmer, Wasmtime, more Compiler emscripten run emscripten on the web : clang-js, Emception, wasm-clang Misc Prefer writing wasm by hand? -> wasmtoy.",
