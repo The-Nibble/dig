@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
-"""Heuristic Nibble export -> self-contained dig/index.html.
+"""Heuristic Nibble export -> data/nibble.json.
 NOT the canonical parser: deterministic regex, best-effort tagging. Meant to be
 overwritten wholesale by the real parser. Prints a report to stderr.
 
+This only parses the Substack archive. It does NOT touch index.html - merging
+the sources, deduping and inlining is build-page.py's job. The split exists
+because the Substack export is a manual download that only lives on a laptop,
+while the Discord half refreshes on a schedule and has to rebuild the page
+without it. data/nibble.json is committed for exactly that reason.
+
 Usage:
-  python3 build-index.py                 # inline the index into index.html
-  python3 build-index.py --json out.json # also write the raw index JSON
+  python3 build-index.py     # parse ~/Downloads/nibble-archive -> data/nibble.json
+  python3 build-page.py      # then merge + inline into index.html
 """
-import csv, glob, os, re, json, html, hashlib, sys, gzip
+import csv, glob, os, re, json, html, hashlib, sys
 from collections import Counter, defaultdict
 from urllib.parse import urlparse
+from taxonomy import KIND_META, TAG_RULES, TAG_META, entity, tags_for, tidy_desc
 
 D = os.path.expanduser('~/Downloads/nibble-archive')
-_args = sys.argv[1:]
-OUT = _args[_args.index('--json') + 1] if '--json' in _args else None
-PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'index.html')
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'nibble.json')
 
 # ---- roster ----
 slug = {}
@@ -68,32 +73,6 @@ EXCLUDE = {'meme of the week', 'weekly standup', 'wallpaper of the week', 'from 
            'what are we up to', 'what weve been up to', 'things i have been up to', 'shoutout',
            'friends of nibble', 'job posts', 'fin bits', 'watching'}
 
-KIND_META = {'news': ('News', False), 'tool': ('Tool', True), 'read': ('Read', True),
-             'quote': ('Quote', True), 'til': ('TIL', True), 'awe': ('Curiosity', True)}
-
-# ---- tagging ----
-TAG_RULES = [  # (compiled regex over haystack, slug, label, facet)
-    (r'\b(ai|a\.i|llm|llms|gpt|chatgpt|openai|anthropic|claude|gemini|deepseek|grok|mistral|llama|neural|machine learning|\bml\b|prompt|prompts|diffusion|transformer|\brag\b|inference|fine[- ]?tun|agentic|agent|agents|models?)\b', 'ai', 'AI/ML', 'topic'),
-    (r'\bopen[- ]?source\b', 'opensource', 'Open source', 'source'),
-    (r'\b(css|html|\bdom\b|frontend|front[- ]end|webgpu|wasm|\bpwa\b|service worker|web ?assembly|browser|webrtc|websocket)\b', 'web', 'Web platform', 'topic'),
-    (r'\b(javascript|\bjs\b|node|nodejs|npm|pnpm|react|vue|svelte|typescript|\bts\b|deno|\bbun\b|eslint|vite|webpack)\b', 'javascript', 'JavaScript', 'topic'),
-    (r'\b(cli|devtool|dev tools|linter|\blint\b|debugger|debug|terminal|docker|kubernetes|\bk8s\b|ci/cd)\b', 'devtools', 'Dev tools', 'topic'),
-    (r'\b(database|databases|\bsql\b|postgres|mysql|mongo|mongodb|redis|\bindex\b|indexes|query)\b', 'data', 'Databases', 'topic'),
-    (r'\b(career|jobs?|hiring|hire|interview|resume|salary|workplace|productivity|craft)\b', 'career', 'Career & craft', 'topic'),
-    (r'\b(security|vulnerabilit|\bcve\b|exploit|encryption|privacy|password|\bauth\b)\b', 'security', 'Security', 'topic'),
-    (r'\blangchain|llm[- ]?ops|vector (db|database)|embeddings?\b', 'llm-ops', 'LLM tooling', 'topic'),
-]
-TAG_RULES = [(re.compile(rx, re.I), s, l, f) for rx, s, l, f in TAG_RULES]
-TAG_META = {}
-for _, s, l, f in TAG_RULES: TAG_META[s] = (l, f)
-for k, (l, _t) in KIND_META.items(): TAG_META[k] = (l, 'kind')
-TAG_META['wikipedia'] = ('Wikipedia', 'source')
-TAG_META['video'] = ('Video', 'source')
-
-GH_RESERVED = {'apps', 'sponsors', 'marketplace', 'settings', 'about', 'features', 'topics',
-               'collections', 'notifications', 'orgs', 'users', 'login', 'join', 'pricing',
-               'site', 'security', 'explore', 'trending', 'new', 'organizations', 'dashboard',
-               'stars', 'issues', 'pulls', 'codespaces', 'readme', 'search'}
 FURNITURE = re.compile(r'(^|\.)(wow|a|p|latest|why|files)\.nibbles\.dev$|nibbles\.dev/(subscribe|survey)|notebooklm\.google\.com|/subscribe|/survey', re.I)
 
 def clean_text(frag):
@@ -105,30 +84,6 @@ def marker_of(text):
     m = re.match(r'^\s*([\U0001F000-\U0001FAFF←-⯿☀-➿️‍]+)', text)
     return m.group(1).strip('‍️ ') if m else None
 
-def entity(url):
-    try: p = urlparse(url)
-    except Exception: return None, None
-    host = (p.netloc or '').lower().split(':')[0]
-    if host.startswith('www.'): host = host[4:]
-    repo = None
-    if host == 'github.com':
-        parts = [x for x in p.path.split('/') if x]
-        if len(parts) >= 2 and parts[0].lower() not in GH_RESERVED:
-            repo = f"{parts[0]}/{re.sub(r'.git$','',parts[1])}".lower()
-    return host, repo
-
-def tags_for(kind, title, desc, host, url, repo):
-    tags = [kind]
-    hay = f"{title} {desc} {host or ''} {url or ''}".lower()
-    for rx, s, l, f in TAG_RULES:
-        if rx.search(hay) and s not in tags: tags.append(s)
-    if repo and 'opensource' not in tags: tags.append('opensource')
-    if host and host.endswith('wikipedia.org') and 'wikipedia' not in tags: tags.append('wikipedia')
-    if host and re.search(r'(youtube\.com|youtu\.be|vimeo\.com)$', host) and 'video' not in tags: tags.append('video')
-    if re.search(r'\b(video|watch|podcast|youtube)\b', hay) and 'video' not in tags: tags.append('video')
-    return tags
-
-# ---- parse one edition ----
 def split_sections(body):
     """yield (level, raw_heading, content_html) in document order."""
     heads = list(re.finditer(r'<h([1-6])[^>]*>(.*?)</h\1>', body, re.S))
@@ -169,16 +124,6 @@ QUOTE_SEP = re.compile(r'\s+[~–—―‒]\s+|\s+--\s+')
 
 # descriptions are the text after the first link, so they often start with a
 # stray '.', ',', '?' or a dangling 'and/but'. tidy that mechanically.
-_LEAD = re.compile(r'^[\s.,;:!?)\]…–—-]+')
-_CONN = re.compile(r'^(and|but|so|also|plus|yet)\b[\s,]*', re.I)
-def tidy_desc(d):
-    d = _CONN.sub('', _LEAD.sub('', d)).strip()
-    if d:
-        d = d[0].upper() + d[1:]
-        if d[-1] not in '.!?)”"':
-            d += '.'
-    return d
-
 for ed in sorted(editions_meta):
     meta = editions_meta[ed]
     body = open(meta['path']).read()
@@ -227,6 +172,10 @@ for ed in sorted(editions_meta):
             url = html.unescape(am.group(1)).strip()
             title = clean_text(am.group(2))
             if not title: continue
+            # Substack renders footnote markers as <a href="#footnote-1">1</a>.
+            # They point nowhere outside the edition and are not links anyone
+            # would search for, so they never become entries.
+            if not re.match(r'https?://', url): continue
             before = li[:am.start()]
             before_txt = clean_text(before)
             marker = marker_of(before_txt if before_txt else clean_text(li))
@@ -273,25 +222,9 @@ _todo = {_key(e): {'title': e['title'], 'description': e['description']}
 json.dump(_todo, open(os.path.join(_HERE, 'descriptions.todo.json'), 'w', encoding='utf-8'),
           ensure_ascii=False, indent=2)
 
-# ---- aggregate tags ----
-tagagg = {}
-for e in entries:
-    for t in e['tags']:
-        a = tagagg.setdefault(t, {'slug': t, 'count': 0, 'eds': set()})
-        a['count'] += 1; a['eds'].add(e['ed'])
-tags = []
-for t, a in tagagg.items():
-    label, facet = TAG_META.get(t, (t.title(), 'topic'))
-    eds = sorted(a['eds'])
-    tags.append({'slug': t, 'label': label, 'facet': facet, 'count': a['count'],
-                 'editions': eds, 'first': eds[0], 'last': eds[-1]})
-tags.sort(key=lambda x: (-x['count'], x['slug']))
-
-# entity count: distinct url, or quote title
-ents = set()
-for e in entries:
-    ents.add(e.get('url') or ('quote::' + e['title']))
-
+# ---- emit ----
+# Tag aggregation, dedupe and the entity count all move to build-page.py: they
+# are properties of the MERGED index, and this script only sees one source.
 editions_out = []
 for ed in sorted(editions_meta):
     m = editions_meta[ed]
@@ -300,39 +233,27 @@ for ed in sorted(editions_meta):
                          'publishedAt': m['publishedAt'], 'crossRefs': m['crossRefs'],
                          'entryCount': m['entryCount'], 'contentHash': m['contentHash']})
 
+for e in entries:
+    e['src'] = 'nibble'
+
 from datetime import datetime, timezone
 out = {'generatedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z'),
-       'editions': editions_out, 'entries': entries, 'tags': tags, 'entityCount': len(ents)}
-blob_json = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
-
-# the page is self-contained: re-inline the index as its BOOTSTRAP blob
-lines = open(PAGE, encoding='utf-8').read().split('\n')
-for i, l in enumerate(lines):
-    if l.startswith('const BOOTSTRAP ='):
-        lines[i] = 'const BOOTSTRAP = ' + blob_json + ';'
-        open(PAGE, 'w', encoding='utf-8').write('\n'.join(lines))
-        print(f"inlined into {PAGE}", file=sys.stderr)
-        break
-else:
-    raise SystemExit("could not find 'const BOOTSTRAP =' line in index.html")
-
-if OUT:  # optional raw JSON dump
-    with open(OUT, 'w') as fh: fh.write(blob_json)
-    print(f"wrote {OUT}", file=sys.stderr)
+       'editions': editions_out, 'entries': entries}
+os.makedirs(os.path.dirname(OUT), exist_ok=True)
+with open(OUT, 'w', encoding='utf-8') as fh:
+    json.dump(out, fh, ensure_ascii=False, separators=(',', ':'))
 
 # ---- report ----
 def pr(*a): print(*a, file=sys.stderr)
-pr(f"\n=== PARSE REPORT ===")
+pr(f"\n=== NIBBLE PARSE REPORT ===")
+pr(f"wrote {OUT} ({os.path.getsize(OUT)/1024:.1f} KB)")
 pr(f"editions indexed: {len(editions_out)} (#{editions_out[0]['number']}..#{editions_out[-1]['number']})")
-pr(f"entries: {len(entries)}   entities: {len(ents)}   tags: {len(tags)}")
-byk = Counter(e['kind'] for e in entries)
-pr("by kind:", dict(byk))
+pr(f"entries: {len(entries)}")
+pr("by kind: " + str(dict(Counter(e['kind'] for e in entries))))
 pr(f"skipped furniture links: {report['skipped_furniture']}")
-_page_bytes = open(PAGE, 'rb').read()
-pr(f"index data: {len(blob_json.encode())/1024:.1f} KB  |  index.html: {len(_page_bytes)/1024:.1f} KB "
-   f"({len(gzip.compress(_page_bytes))/1024:.1f} KB gzipped)")
 pr(f"\nUNKNOWN section-level headings (parked in awe, {len(report['unknown'])} distinct):")
 for n, c in report['unknown'].most_common():
     eds = sorted(report['unknown_eds'][n]); pr(f"  {c:3d}x  {n!r:45s} eds {eds}")
 low = [e for e in entries if not e.get('url') and e['kind'] != 'quote']
 pr(f"\nentries with no url (non-quote): {len(low)}")
+pr("\nnext: python3 build-page.py")

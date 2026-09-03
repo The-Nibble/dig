@@ -1,0 +1,93 @@
+name: Index new Discord links
+
+# The Substack half of the index is a manual export that only exists on a
+# laptop, so this job never runs build-index.py. It reads the committed
+# data/nibble.json, adds whatever Discord posted since yesterday, and rebuilds
+# the page from both.
+on:
+  schedule:
+    - cron: '17 4 * * *'      # 04:17 UTC daily, off the hour to dodge the rush
+  workflow_dispatch:           # and on demand, from the Actions tab
+
+concurrency:
+  group: index
+  cancel-in-progress: false    # never let two runs race on the same commit
+
+permissions:
+  contents: write
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45          # a wedged fetch should fail, not idle for hours
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Set DISCORD_GUILD_ID and every public channel is found automatically,
+      # including ones created after this workflow was written. Set
+      # DISCORD_CHANNEL_IDS instead to pin the list by hand.
+      - name: Harvest new messages
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+          DISCORD_CHANNEL_IDS: ${{ secrets.DISCORD_CHANNEL_IDS }}
+          DISCORD_EXCLUDE_CHANNELS: ${{ vars.DISCORD_EXCLUDE_CHANNELS }}
+          DISCORD_TOKEN_TYPE: ${{ vars.DISCORD_TOKEN_TYPE || 'bot' }}
+        run: python3 fetch-discord.py
+
+      - name: Fetch titles and blurbs for new links
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 enrich-links.py --limit 200
+
+      - name: Rebuild the page
+        run: python3 build-page.py
+
+      # The fingerprint covers every ordered title+description embedding input,
+      # so same-sized edits and reorders rebuild just like additions do.
+      - name: Rebuild smart-search vectors when the corpus changed
+        run: |
+          status=0
+          python3 vectors-stale.py || status=$?
+          if [ "$status" -eq 0 ]; then
+            pip install --quiet onnxruntime tokenizers numpy
+            python3 build-vectors.py
+          elif [ "$status" -eq 1 ]; then
+            echo "vectors already match the index - nothing to rebuild"
+          else
+            echo "vector freshness check failed with status $status" >&2
+            exit "$status"
+          fi
+
+      - name: Commit
+        run: |
+          git config user.name  'nibble-indexer'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/ index.html vectors.f32 vectors.json
+          if git diff --staged --quiet; then
+            echo "nothing new today"
+          else
+            git commit -m "Index new Discord links ($(date -u +%Y-%m-%d))"
+            # the concurrency group serialises this job against itself, but a
+            # human commit landing mid-run would still reject the push
+            pushed=false
+            for i in 1 2 3; do
+              if git push; then
+                pushed=true
+                break
+              fi
+              echo "push rejected, rebasing on origin (attempt $i)"
+              if [ "$i" -eq 3 ]; then
+                break
+              fi
+              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || exit 1
+            done
+            if [ "$pushed" != true ]; then
+              echo "failed to push the generated index after 3 attempts" >&2
+              exit 1
+            fi
+          fi
