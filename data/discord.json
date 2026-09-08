@@ -11,7 +11,7 @@
   },
   "1085525451444854804": {
    "name": "link-gold-mine",
-   "lastMessageId": "1544668468698423417"
+   "lastMessageId": "1546601898977665064"
   },
   "1086582190038593637": {
    "name": "to-read",
@@ -47,7 +47,7 @@
   },
   "1123407753151516683": {
    "name": "fun-tools",
-   "lastMessageId": "1543229281151483924"
+   "lastMessageId": "1546632557209329835"
   },
   "1128790553123897364": {
    "name": "research-papers",
@@ -131,7 +131,7 @@
   },
   "1202248130406658098": {
    "name": "business-reads",
-   "lastMessageId": "1304436642295320589"
+   "lastMessageId": "1546749045622448128"
   },
   "1206003051106934784": {
    "name": "mobile-dev",
@@ -26861,6 +26861,45 @@
    "urls": [
     {
      "url": "https://www.nytimes.com/2026/08/24/world/europe/russia-drones-autonomous-ai-kill-ukraine-war.html",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1546601898977665064",
+   "ch": "1085525451444854804",
+   "ts": "2026-09-07T19:23:47.190000+00:00",
+   "author": "_m_a_d_a_r_a.",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://events.ycombinator.com/yc-paperclub-Sep23",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1546632557209329835",
+   "ch": "1123407753151516683",
+   "ts": "2026-09-07T21:25:36.682000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://www.ascii-magic.com/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1546749045622448128",
+   "ch": "1202248130406658098",
+   "ts": "2026-09-08T05:08:29.684000+00:00",
+   "author": "_m_a_d_a_r_a.",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://thecyberexpress.com/liquid-network-security-incident/",
      "text": null
     }
    ]

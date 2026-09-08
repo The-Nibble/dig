@@ -673,6 +673,13 @@
   "title": "LLM subscriptions vs. APIs value for money",
   "url": "https://www.asad.pw/llm-subscriptions-vs-apis-value-for-money/"
  },
+ "ascii-magic.com/": {
+  "description": "Turn any photo or video into ASCII, pixel art, voxel, mosaic, halftone, glitch or LEGO, in your browser, no signup.",
+  "fetchedAt": "2026-09-08T08:53:31+00:00",
+  "ok": true,
+  "title": "Free ASCII Art Generator, Image & Video to ASCII | ASCII Magic",
+  "url": "https://www.ascii-magic.com/"
+ },
  "ashugarg.substack.com/p/ten-predictions-for-tech-and-ai-in": {
   "description": "I reflect on tech's 2024 milestones and chart what lies ahead in 2025.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -2845,6 +2852,13 @@
   "ok": true,
   "title": "Pongo - Mongo but on Postgres and with strong consistency benefits - Event-Driven.io",
   "url": "https://event-driven.io/en/introducting_pongo/"
+ },
+ "events.ycombinator.com/yc-paperclub-sep23": {
+  "description": "Researchers and builders don't talk to each other enough. So this summer, we're starting the YC Paper Club to bring them together. Every few weeks, we'll host a small group at our Mountain View of...",
+  "fetchedAt": "2026-09-08T08:53:31+00:00",
+  "ok": true,
+  "title": "YC Paper Club - Alternative Compute Paradigms",
+  "url": "https://events.ycombinator.com/yc-paperclub-Sep23"
  },
  "every.to/expanding-awareness/stop-being-who-you-aren-t": {
   "description": "Find your “people” along the way.",
@@ -9469,6 +9483,13 @@
   "ok": true,
   "title": "Texts",
   "url": "https://texts.com/invite/ivt_01HREFBNVD6FC95SCCF2245BFN"
+ },
+ "thecyberexpress.com/liquid-network-security-incident": {
+  "description": "The Liquid Network security incident has taken an unusual turn after the unidentified actors behind the theft of nearly 4,000.",
+  "fetchedAt": "2026-09-08T08:53:31+00:00",
+  "ok": true,
+  "title": "Liquid Network Hackers Demand Bug Fix Before Returning $320M BTC",
+  "url": "https://thecyberexpress.com/liquid-network-security-incident/"
  },
  "thedefiant.io/news/nfts-and-web3/polkadot-community-unhappy-with-heavy-treasury-spend": {
   "description": "Polkadot is facing backlash after its treasury spent $37 million on marketing during the first half of 2024.",
