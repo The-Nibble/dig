@@ -127,7 +127,7 @@
   },
   "1196900698265239643": {
    "name": "fonts",
-   "lastMessageId": "1530297369885937785"
+   "lastMessageId": "1546978592716759122"
   },
   "1202248130406658098": {
    "name": "business-reads",
@@ -26900,6 +26900,19 @@
    "urls": [
     {
      "url": "https://thecyberexpress.com/liquid-network-security-incident/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1546978592716759122",
+   "ch": "1196900698265239643",
+   "ts": "2026-09-08T20:20:37.976000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://opencode.ai/font/",
      "text": null
     }
    ]
