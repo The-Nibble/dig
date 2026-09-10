@@ -2712,6 +2712,13 @@
   "title": "Hacking India’s largest automaker: Tata Motors",
   "url": "https://eaton-works.com/2025/10/28/tata-motors-hack/"
  },
+ "eatthismuch.com/": {
+  "description": "Eat This Much creates personalized meal plans tailored to your preferences, budget, and schedule. Achieve your dietary goals with our calorie calculator, weekly plans, and grocery lists. Start planning your meals in seconds.",
+  "fetchedAt": "2026-09-10T08:58:07+00:00",
+  "ok": true,
+  "title": "The Automatic Meal Planner - Eat This Much",
+  "url": "https://www.eatthismuch.com/"
+ },
  "economictimes.com/tech/funding/clean-electric-raises-6-million-in-funding-from-info-edge-ventures-others/amp_articleshow/113197486.cms": {
   "description": "Clean Electric, a Pune-based startup developing fast-charging battery technology for electric vehicles, has raised $6 million in funding. The funds will be used to expand R&D, sales, and operations teams, and create new products. The company aims to scale its technology for electric four-wheelers and commercial vehicles within the next 12 to 18 months.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -3245,6 +3252,13 @@
   "ok": true,
   "title": "DigitalOcean vs Render: Pricing & Features Compared (2026)",
   "url": "https://getdeploying.com/digitalocean-vs-render"
+ },
+ "geteventually.com/": {
+  "description": "Bet you have hundreds of saved tweets. Use Eventually to actually revisit them. A tiny browser extension that emails you the tweets you meant to come back to, but never did. Works with X bookmarks.",
+  "fetchedAt": "2026-09-10T08:58:07+00:00",
+  "ok": true,
+  "title": "Eventually | Revisit your saved tweets",
+  "url": "https://www.geteventually.com/"
  },
  "getjustd.com/": {
   "description": "A set of accessible React components built on React Aria and styled with Tailwind CSS, designed for copy-and-paste customization.",
@@ -6073,6 +6087,13 @@
   "title": "Facebook's Little Red Book",
   "url": "https://www.map.cv/blog/redbook",
   "via": "agent"
+ },
+ "mapinseconds.com/": {
+  "description": null,
+  "fetchedAt": "2026-09-10T08:58:07+00:00",
+  "ok": true,
+  "title": "MapInSeconds.com by @ideaOwl",
+  "url": "https://mapinseconds.com/"
  },
  "maps.app.goo.gl/cmzzinvsqlb74n6o6?g_st=ipc": {
   "description": null,
