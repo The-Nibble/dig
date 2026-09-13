@@ -7,7 +7,7 @@
   },
   "1085506605405175829": {
    "name": "liked-phrases",
-   "lastMessageId": "1545899674601398413"
+   "lastMessageId": "1548293545884913675"
   },
   "1085525451444854804": {
    "name": "link-gold-mine",
@@ -23,7 +23,7 @@
   },
   "1088877826247245934": {
    "name": "best-of-yt",
-   "lastMessageId": "1518229017357058050"
+   "lastMessageId": "1548261187001651211"
   },
   "1088925292099289088": {
    "name": "dev-tooling",
@@ -26953,6 +26953,23 @@
     {
      "url": "https://www.geteventually.com/",
      "text": null
+    }
+   ]
+  },
+  {
+   "id": "1548261187001651211",
+   "ch": "1088877826247245934",
+   "ts": "2026-09-12T09:17:12.283000+00:00",
+   "author": "AkhileshManda",
+   "said": "feels like a sci-fi 🤯",
+   "urls": [
+    {
+     "url": "https://youtu.be/u15N3l4RT80?si=by5JvJyZjq3XBl7A",
+     "text": null
+    },
+    {
+     "url": "https://www.youtube.com/watch?v=u15N3l4RT80",
+     "text": "The OpenAI/Hugging Face attack, clearly explained"
     }
    ]
   }
