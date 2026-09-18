@@ -75,7 +75,7 @@
   },
   "1178381917092073472": {
    "name": "memes",
-   "lastMessageId": "1543260466095067317"
+   "lastMessageId": "1550371747541291130"
   },
   "1178382171199782912": {
    "name": "ai-generated",
@@ -26970,6 +26970,23 @@
     {
      "url": "https://www.youtube.com/watch?v=u15N3l4RT80",
      "text": "The OpenAI/Hugging Face attack, clearly explained"
+    }
+   ]
+  },
+  {
+   "id": "1550371747541291130",
+   "ch": "1178381917092073472",
+   "ts": "2026-09-18T05:03:49.128000+00:00",
+   "author": "_m_a_d_a_r_a.",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://x.com/jpschroeder/status/2100230381588951209?s=46",
+     "text": null
+    },
+    {
+     "url": "https://twitter.com/jpschroeder/status/2100230381588951209?s=46",
+     "text": null
     }
    ]
   }
