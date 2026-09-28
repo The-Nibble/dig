@@ -42,14 +42,14 @@
   "url": "https://www.5snb.club/posts/2023/do-not-stab/"
  },
  "66260701.com/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve 66260701.com: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://66260701.com"
  },
  "66260701/picasso": {
-  "error": "URLError: <urlopen error timed out>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "TimeoutError: fetch exceeded 15s",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://66260701/picasso"
  },
@@ -409,14 +409,14 @@
   "url": "https://apertis.ai/"
  },
  "app.cheatsheet.to/": {
-  "error": "URLError: <urlopen error timed out>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "SSLError: [SSL: TLSV1_UNRECOGNIZED_NAME] tlsv1 unrecognized name (_ssl.c:1010)",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://app.cheatsheet.to"
  },
  "app.comparely.co.in/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve app.comparely.co.in: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://app.comparely.co.in/"
  },
@@ -435,8 +435,8 @@
   "url": "https://app.dover.com/apply/Blue%20AI%20Labs/9252af36-4597-4d5c-8fa6-7e29f18d75c8"
  },
  "app.jellylade.com/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve app.jellylade.com: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://app.jellylade.com/"
  },
@@ -485,21 +485,22 @@
   "url": "https://arcboost-marketplace.vercel.app/"
  },
  "archive.is/kkjes": {
-  "error": "HTTPError: HTTP Error 429: Too Many Requests",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "TimeoutError: fetch exceeded 15s",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://archive.is/kKJEs"
  },
  "archive.is/pjquu": {
-  "error": "HTTPError: HTTP Error 429: Too Many Requests",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "TimeoutError: fetch exceeded 15s",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://archive.is/PJQUU"
  },
  "archive.is/xarck": {
-  "error": "HTTPError: HTTP Error 429: Too Many Requests",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
-  "ok": false,
+  "description": null,
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "ok": true,
+  "title": "Welcome to nginx",
   "url": "https://archive.is/xArCk"
  },
  "archive.org/details/in.gov.ignca.279/mode/2up": {
@@ -765,8 +766,8 @@
   "url": "https://aws.amazon.com/s3/features/vectors/"
  },
  "azsh.it/": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://azsh.it/",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://azsh.it/"
  },
@@ -935,15 +936,16 @@
   "url": "https://bestfreefonts.com/"
  },
  "beyond2060.com/ai-work-zombie-apocalypse": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://jamjohnson.com/ai-work-zombie-apocalypse/",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.beyond2060.com/ai-work-zombie-apocalypse/"
  },
  "billsplit.xyz/": {
-  "error": "URLError: <urlopen error timed out>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
-  "ok": false,
+  "description": "Own billsplit.xyz today. Secure checkout and guided transfer support. No hidden fees.",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "ok": true,
+  "title": "Buy billsplit.xyz | Spaceship",
   "url": "https://www.billsplit.xyz/"
  },
  "binance.com/en/blog/security/1074784605501075045": {
@@ -1155,8 +1157,8 @@
   "url": "https://blog.logrocket.com/winterjs-vs-bun-comparing-javascript-runtimes/"
  },
  "blog.mastermind.dev/indexes-in-postgresql": {
-  "error": "URLError: <urlopen error timed out>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "SSLError: [SSL: TLSV1_UNRECOGNIZED_NAME] tlsv1 unrecognized name (_ssl.c:1010)",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://blog.mastermind.dev/indexes-in-postgresql"
  },
@@ -1350,8 +1352,8 @@
   "url": "https://boards.greenhouse.io/gitlab/jobs/7060552002"
  },
  "boards.greenhouse.io/growtherapy/jobs/4278952005": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://job-boards.greenhouse.io/growtherapy?error=true",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://boards.greenhouse.io/growtherapy/jobs/4278952005"
  },
@@ -1363,8 +1365,8 @@
   "url": "https://boards.greenhouse.io/mozilla/jobs/5107798"
  },
  "boards.greenhouse.io/peopledatalabs/jobs/5128400004": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://job-boards.greenhouse.io/peopledatalabs?error=true",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://boards.greenhouse.io/peopledatalabs/jobs/5128400004"
  },
@@ -1376,8 +1378,8 @@
   "url": "https://boards.greenhouse.io/reddit/jobs/5136703"
  },
  "boards.greenhouse.io/supabase/jobs/4910374004": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://job-boards.greenhouse.io/supabase?error=true",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://boards.greenhouse.io/supabase/jobs/4910374004"
  },
@@ -1463,8 +1465,8 @@
   "via": "agent"
  },
  "businessinsider.in/careers/news/i-invested-enough-money-to-retire-at-29-i-dont-ever-need-to-worry-about-earning-a-salary-again-/articleshow/106768569.cms": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve www.businessinsider.in: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.businessinsider.in/careers/news/i-invested-enough-money-to-retire-at-29-i-dont-ever-need-to-worry-about-earning-a-salary-again-/articleshow/106768569.cms"
  },
@@ -1553,20 +1555,20 @@
   "url": "https://www.captions.ai/"
  },
  "careerbrige.com/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve www.careerbrige.com: [Errno -3] Temporary failure in name resolution",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.careerbrige.com/"
  },
  "careers.ghost.org/infrastructure-engineer/en": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://404.homerun.co/vacancies/ghost/infrastructure-engineer_en",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://careers.ghost.org/infrastructure-engineer/en"
  },
  "careers.ghost.org/product-engineer/en": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://404.homerun.co/vacancies/ghost/product-engineer_en",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://careers.ghost.org/product-engineer/en"
  },
@@ -1622,9 +1624,10 @@
   "url": "https://www.chainguard.dev/unchained/working-as-unexpected"
  },
  "cheatsheet.to/": {
-  "error": "URLError: <urlopen error timed out>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
-  "ok": false,
+  "description": null,
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "ok": true,
+  "title": null,
   "url": "http://cheatsheet.to"
  },
  "chelseatroy.com/2023/04/15/how-do-tech-companies-make-money": {
@@ -1812,8 +1815,8 @@
   "via": "agent"
  },
  "cohttps//a16z.com/2023/05/25/ai-canon/urse.fast.ai": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve cohttps: [Errno -3] Temporary failure in name resolution",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://cohttps://a16z.com/2023/05/25/ai-canon/urse.fast.ai/"
  },
@@ -2054,8 +2057,8 @@
   "url": "https://www.damaia.com/google"
  },
  "damo-vilab.github.io/anydoor-page": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://damo-vilab.github.io/AnyDoor-Page/",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://damo-vilab.github.io/AnyDoor-Page/"
  },
@@ -2447,8 +2450,8 @@
   "url": "https://discord-spoiler-text-converter.thepushkarp.com/"
  },
  "discover.sonarsource.com/react-mistakes-and-how-to-avoid-them": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://discover.sonarsource.com/react-mistakes-and-how-to-avoid-them",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://discover.sonarsource.com/react-mistakes-and-how-to-avoid-them"
  },
@@ -2919,8 +2922,8 @@
   "url": "https://explainextended.com/2023/12/31/happy-new-year-15/"
  },
  "explee.com/s": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://explee.com/s",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://explee.com/s"
  },
@@ -2997,8 +3000,8 @@
   "url": "https://ferd.ca/a-distributed-systems-reading-list.html"
  },
  "feynman.ai/": {
-  "error": "URLError: <urlopen error timed out>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve www.feynman.ai: [Errno -3] Temporary failure in name resolution",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.feynman.ai/"
  },
@@ -3031,9 +3034,10 @@
   "url": "https://fi.money/features/getting-started-with-fi-mcp"
  },
  "figgy.app/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
-  "ok": false,
+  "description": null,
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "ok": true,
+  "title": "porkbun.com | domain for sale",
   "url": "https://figgy.app/"
  },
  "figma.com/blog/figma-adobe-abandon-proposed-merger": {
@@ -3190,8 +3194,8 @@
   "url": "https://frontierai.substack.com/p/throw-more-ai-at-your-problems"
  },
  "fullystacked.net/centering-things": {
-  "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1082)>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://fullystacked.net/centering-things"
  },
@@ -3291,8 +3295,8 @@
   "url": "https://gist.github.com/gtallen1187/27a585fcf36d6e657db2"
  },
  "git.gaozih.top/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve git.gaozih.top: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://git.gaozih.top/"
  },
@@ -4139,8 +4143,8 @@
   "url": "https://github.com/MODSetter/SurfSense"
  },
  "github.com/movie-web/movie-web": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://api.github.com/repos/movie-web/movie-web",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://github.com/movie-web/movie-web"
  },
@@ -4805,8 +4809,8 @@
   "url": "https://www.google.com/travel/flights/deals"
  },
  "gowind.github.io/post/self_evaluation": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://gowind.github.io/post/self_evaluation/",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://gowind.github.io/post/self_evaluation/"
  },
@@ -4825,8 +4829,8 @@
   "url": "https://greylock.com/greymatter/ai-field-notes/"
  },
  "grnh.se/a195251f3us": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://careers.godaddy/en-US/jobs/5533058003?gh_jid=5533058003&gh_src=a195251f3us&source=LinkedIn",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://grnh.se/a195251f3us?source=LinkedIn"
  },
@@ -4950,8 +4954,8 @@
   "url": "https://horace.io/brrr_intro.html"
  },
  "hotfix.jobs/jobs/c6f670e7-56cc-4133-b296-4d6d13261cb2": {
-  "error": "HTTPError: HTTP Error 429: Too Many Requests",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 429 from https://hotfix.jobs/jobs/c6f670e7-56cc-4133-b296-4d6d13261cb2",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://hotfix.jobs/jobs/c6f670e7-56cc-4133-b296-4d6d13261cb2"
  },
@@ -5022,8 +5026,8 @@
   "url": "https://ia.net/writer"
  },
  "ia902205.us.archive.org/15/items/pdfy-tg1mumpwvrml6qd0/228831637-optimal-tip-to-tip-efficiency.pdf": {
-  "error": "URLError: <urlopen error timed out>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "TimeoutError: fetch exceeded 15s",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://ia902205.us.archive.org/15/items/pdfy-tG1MuMpwvrML6QD0/228831637-Optimal-Tip-to-Tip-Efficiency.pdf"
  },
@@ -5194,9 +5198,10 @@
   "via": "agent"
  },
  "interviewready.io/blog/interview-scorecard-part-i": {
-  "error": "HTTPError: HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop.\nThe last 30x error message was:\nFound",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
-  "ok": false,
+  "description": "This is how interviewers score software developers during interviews, on coding, problem-solving and communication.",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "ok": true,
+  "title": "Pass or Fail: How are technical interviews scored?",
   "url": "https://interviewready.io/blog/interview-scorecard-part-i"
  },
  "invertedpassion.com/free-book-mental-models-for-startup-founders": {
@@ -5344,20 +5349,20 @@
   "url": "https://jobs.apple.com/en-in/details/200549620/software-engineer-java-spring-boot-and-microservices?team=SFTWR"
  },
  "jobs.lever.co/dyte-io/d038d490-f7c8-423e-900d-ec4ad1e4e69f": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://jobs.lever.co/dyte-io/d038d490-f7c8-423e-900d-ec4ad1e4e69f",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://jobs.lever.co/dyte-io/d038d490-f7c8-423e-900d-ec4ad1e4e69f"
  },
  "jobs.lever.co/uniphore/61df15ce-8a6c-47e9-8c3f-c18915d241f2": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://jobs.lever.co/uniphore/61df15ce-8a6c-47e9-8c3f-c18915d241f2",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://jobs.lever.co/uniphore/61df15ce-8a6c-47e9-8c3f-c18915d241f2"
  },
  "jobs.lever.co/unlimit/51fa8150-3256-4d39-bc87-8d0ab4a36357": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://jobs.lever.co/unlimit/51fa8150-3256-4d39-bc87-8d0ab4a36357/",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://jobs.lever.co/unlimit/51fa8150-3256-4d39-bc87-8d0ab4a36357/"
  },
@@ -5487,8 +5492,8 @@
   "url": "https://k8s.af/"
  },
  "kadoa.com/joblens": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://www.kadoa.com/joblens",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.kadoa.com/joblens"
  },
@@ -5981,8 +5986,8 @@
   "url": "https://www.louisemeta.com/blog/indexes-btree-algorithms/"
  },
  "lp.avatouch.net/en": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve lp.avatouch.net: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://lp.avatouch.net/en/"
  },
@@ -6363,8 +6368,8 @@
   "url": "https://mielo-ui.github.io/"
  },
  "million.dev/blog/lint": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://million.dev/blog/lint",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://million.dev/blog/lint"
  },
@@ -6645,8 +6650,8 @@
   "url": "https://needle-ai.com/"
  },
  "neets.ai/": {
-  "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1082)>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://neets.ai/"
  },
@@ -7444,8 +7449,8 @@
   "via": "agent"
  },
  "patentlyapple.com/2024/05/today-apple-won-51-patents-with-one-describing-a-foldable-device-that-includes-a-display-cover-layer.html": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://www.patentlyapple.com/2024/05/today-apple-won-51-patents-with-one-describing-a-foldable-device-that-includes-a-display-cover-layer.html",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.patentlyapple.com/2024/05/today-apple-won-51-patents-with-one-describing-a-foldable-device-that-includes-a-display-cover-layer.html"
  },
@@ -7485,8 +7490,8 @@
   "url": "https://www.pdftoquiz.com/"
  },
  "peabee.substack.com/p/whats-inside-the-qr-code-menu-at": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 403 from https://peabee.substack.com/p/whats-inside-the-qr-code-menu-at",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://peabee.substack.com/p/whats-inside-the-qr-code-menu-at"
  },
@@ -7536,14 +7541,14 @@
   "url": "https://www.philosophybro.com/"
  },
  "phuoc.ng/collection/html-dom/change-the-favicon-dynamically-based-on-user-color-scheme-preference": {
-  "error": "URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "TimeoutError: fetch exceeded 15s",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://phuoc.ng/collection/html-dom/change-the-favicon-dynamically-based-on-user-color-scheme-preference/"
  },
  "phuoc.ng/collection/react-drag-drop/build-a-custom-scrollbar": {
-  "error": "URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "TimeoutError: fetch exceeded 15s",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://phuoc.ng/collection/react-drag-drop/build-a-custom-scrollbar/"
  },
@@ -7607,14 +7612,14 @@
   "via": "agent"
  },
  "platform.openai.com/docs/guides/fine-tuning/create-a-fine-tuned-model": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://developers.openai.com/api/docs/guides/fine-tuning/create-a-fine-tuned-model",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://platform.openai.com/docs/guides/fine-tuning/create-a-fine-tuned-model"
  },
  "platform.openai.com/docs/guides/optimizing-llm-accuracy/llm-optimization-context": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://developers.openai.com/api/docs/guides/optimizing-llm-accuracy/llm-optimization-context",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://platform.openai.com/docs/guides/optimizing-llm-accuracy/llm-optimization-context"
  },
@@ -7797,8 +7802,8 @@
   "via": "agent"
  },
  "producthunt.com/jobs": {
-  "error": "HTTPError: HTTP Error 403: Forbidden",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 403 from https://www.producthunt.com/jobs?&",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.producthunt.com/jobs?&"
  },
@@ -7873,8 +7878,8 @@
   "url": "https://projectwhitepaper.substack.com/p/the-kademlia-dht"
  },
  "protocals.xyz/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve www.protocals.xyz: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.protocals.xyz/"
  },
@@ -7969,8 +7974,8 @@
   "url": "https://www.raycast.com/massimiliano_pasquini/raycast-ollama"
  },
  "raycast.com/massimiliano_pasquini/raycast-ollama.": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://www.raycast.com/massimiliano_pasquini/raycast-ollama.",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.raycast.com/massimiliano_pasquini/raycast-ollama."
  },
@@ -8024,14 +8029,14 @@
   "url": "https://reactnative.dev/docs/next/virtualview"
  },
  "read.cv/teams/playai": {
-  "error": "HTTPError: HTTP Error 402: Payment Required",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 402 from https://read.cv/teams/playai",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://read.cv/teams/playai"
  },
  "read.cv/teams/tiptop/product-designer-0cin87jqt2j7yykqznxv": {
-  "error": "HTTPError: HTTP Error 402: Payment Required",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 402 from https://read.cv/teams/tiptop/product-designer-0ciN87jQT2J7yYkQZnxV",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://read.cv/teams/tiptop/product-designer-0ciN87jQT2J7yYkQZnxV"
  },
@@ -8296,8 +8301,8 @@
   "url": "https://www.rippling.com/careers/open-roles"
  },
  "roadmap-ui.com/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve www.roadmap-ui.com: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.roadmap-ui.com/"
  },
@@ -8323,8 +8328,8 @@
   "url": "https://rockset.com/Rockset_Concepts_Design_Architecture.pdf"
  },
  "rodydavis.com/sqlite/nosql": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 403 from https://rodydavis.com/sqlite/nosql",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://rodydavis.com/sqlite/nosql"
  },
@@ -8357,8 +8362,8 @@
   "url": "https://rsstotweet.xyz/"
  },
  "rubyonremote.com/jobs/18983-software-engineer-co-op-at-wave-hq": {
-  "error": "HTTPError: HTTP Error 403: Forbidden",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 403 from https://rubyonremote.com/jobs/18983-software-engineer-co-op-at-wave-hq",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://rubyonremote.com/jobs/18983-software-engineer-co-op-at-wave-hq"
  },
@@ -8687,8 +8692,8 @@
   "url": "https://shoelace.style/"
  },
  "shortwave.com/ai": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://www.shortwave.com/ai/",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.shortwave.com/ai/"
  },
@@ -8973,8 +8978,8 @@
   "url": "https://sre.google/workbook/alerting-on-slos/"
  },
  "srijantech.hire.trakstar.com/jobs/fk0xn1k": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://srijantech.hire.trakstar.com/jobs/fk0xn1k",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://srijantech.hire.trakstar.com/jobs/fk0xn1k"
  },
@@ -9171,8 +9176,8 @@
   "url": "https://stitch.withgoogle.com/"
  },
  "store.shantanugoel.com/product/github-contribution-skyline-3d-model": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve store.shantanugoel.com: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://store.shantanugoel.com/product/github-contribution-skyline-3d-model/"
  },
@@ -9361,8 +9366,8 @@
   "url": "https://tailscale.com/blog/new-internet"
  },
  "tanstack.com/router/v1/docs/framework/react/guide/virtual-file-routes": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://tanstack.com/router/latest/docs/guide/virtual-file-routes",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://tanstack.com/router/v1/docs/framework/react/guide/virtual-file-routes"
  },
@@ -9374,8 +9379,8 @@
   "url": "https://taylor.town/ikea-oriented-development"
  },
  "tduyng.github.io/blog/dynamic-github-profile-readme": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 404 from https://tduyng.github.io/blog/dynamic-github-profile-readme/",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://tduyng.github.io/blog/dynamic-github-profile-readme/"
  },
@@ -9387,8 +9392,8 @@
   "url": "https://tech.phonepe.com/introducing-liquidui-phonepes-server-driven-ui-framework/"
  },
  "tech.scapia.in/one-codebase-every-screen-how-scapia-built-a-multi-platform-flutter-app-6bf75a3cbbde": {
-  "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] ssl/tls alert handshake failure (_ssl.c:1082)>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "SSLError: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010)",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://tech.scapia.in/one-codebase-every-screen-how-scapia-built-a-multi-platform-flutter-app-6bf75a3cbbde"
  },
@@ -9869,9 +9874,10 @@
   "url": "https://twitter.com/eLafdaTracker"
  },
  "twitter.com/extropic_ai": {
-  "error": "HTTPError: HTTP Error 404: Not Found",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
-  "ok": false,
+  "description": null,
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "ok": true,
+  "title": null,
   "url": "https://twitter.com/Extropic_AI"
  },
  "twitter.com/nyttypos?s=09&t=C63aj8LLnJIuNK1bMwWC4g": {
@@ -10245,8 +10251,8 @@
   "url": "https://weiyen.net/articles/useful-macos-cmd-line-utilities"
  },
  "wellfound.com/company/viametamap": {
-  "error": "HTTPError: HTTP Error 403: Forbidden",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: HTTP 403 from https://wellfound.com/company/viametamap",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://wellfound.com/company/viametamap"
  },
@@ -10369,8 +10375,8 @@
   "url": "https://wokwi.com/"
  },
  "work.mercor.io/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve work.mercor.io: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://work.mercor.io/"
  },
@@ -13638,8 +13644,8 @@
   "url": "https://www.youtube.com/watch?v=zsyGRDrDfbI"
  },
  "ytpics.com/": {
-  "error": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>",
-  "fetchedAt": "2026-08-29T06:18:49+00:00",
+  "error": "FetchError: could not resolve www.ytpics.com: [Errno -2] Name or service not known",
+  "fetchedAt": "2026-09-28T10:57:06+00:00",
   "ok": false,
   "url": "https://www.ytpics.com/"
  },
