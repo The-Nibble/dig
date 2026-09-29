@@ -55,7 +55,7 @@
   },
   "1147968181152006174": {
    "name": "general",
-   "lastMessageId": "1545121107210805298"
+   "lastMessageId": "1554193509282488410"
   },
   "1166653585237495818": {
    "name": "music-recommendations",
@@ -123,7 +123,7 @@
   },
   "1193261453436788866": {
    "name": "ai-links",
-   "lastMessageId": "1542084573108633652"
+   "lastMessageId": "1554347027163390032"
   },
   "1196900698265239643": {
    "name": "fonts",
@@ -26986,6 +26986,49 @@
     },
     {
      "url": "https://twitter.com/jpschroeder/status/2100230381588951209?s=46",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1554189324810195094",
+   "ch": "1147968181152006174",
+   "ts": "2026-09-28T17:53:30.476000+00:00",
+   "author": "aashutosh",
+   "said": "Has anyone tried or like know how this works exactly?",
+   "urls": [
+    {
+     "url": "https://www.quotientlabs.com/#install",
+     "text": null
+    },
+    {
+     "url": "https://www.quotientlabs.com/",
+     "text": "Fermat's Last Token — Quotient Labs"
+    }
+   ]
+  },
+  {
+   "id": "1554193509282488410",
+   "ch": "1147968181152006174",
+   "ts": "2026-09-28T18:10:08.132000+00:00",
+   "author": "AkhileshManda",
+   "said": "they have this public but this is bench, will have to see",
+   "urls": [
+    {
+     "url": "https://github.com/akuik/sessionbench-swe/tree/main/bin",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1554347027163390032",
+   "ch": "1193261453436788866",
+   "ts": "2026-09-29T04:20:09.647000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://claude.dev/blog/automating-eval-design-and-hillclimbing/",
      "text": null
     }
    ]
