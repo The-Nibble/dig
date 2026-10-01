@@ -7058,8 +7058,8 @@
   "via": "agent"
  },
  "nytimes.com/2024/03/07/us/voyager-1-nasa-mission.html?smid=url-share&unlocked_article_code=1.a00.l46B.BEaTxh3R8783": {
-  "error": "HTTPError: HTTP Error 403: Forbidden",
-  "fetchedAt": "2026-08-31T14:02:39+00:00",
+  "error": "FetchError: HTTP 403 from https://www.nytimes.com/2024/03/07/us/voyager-1-nasa-mission.html?smid=url-share&unlocked_article_code=1.a00.l46B.BEaTxh3R8783",
+  "fetchedAt": "2026-10-01T10:58:29+00:00",
   "ok": false,
   "url": "https://www.nytimes.com/2024/03/07/us/voyager-1-nasa-mission.html?smid=url-share&unlocked_article_code=1.a00.l46B.BEaTxh3R8783"
  },
