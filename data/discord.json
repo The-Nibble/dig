@@ -107,7 +107,7 @@
   },
   "1183452888517845044": {
    "name": "random",
-   "lastMessageId": "1544756695346061362"
+   "lastMessageId": "1555595734278209616"
   },
   "1188412135823396951": {
    "name": "leet-code",
@@ -27029,6 +27029,27 @@
    "urls": [
     {
      "url": "https://claude.dev/blog/automating-eval-design-and-hillclimbing/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1555595734278209616",
+   "ch": "1183452888517845044",
+   "ts": "2026-10-02T15:02:04.623000+00:00",
+   "author": "_m_a_d_a_r_a.",
+   "said": "This humanoid robotics company \"Figure” made their older gen robots jump into their death. (Yes, they actually did this)",
+   "urls": [
+    {
+     "url": "https://x.com/figure_robot/status/2105316680251650555?s=46",
+     "text": null
+    },
+    {
+     "url": "https://www.figure.ai/news/f-02-decommission",
+     "text": null
+    },
+    {
+     "url": "https://twitter.com/figure_robot/status/2105316680251650555?s=46",
      "text": null
     }
    ]

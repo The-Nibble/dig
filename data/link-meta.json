@@ -3063,6 +3063,13 @@
   "url": "https://www.figma.com/blog/migrating-onto-kubernetes/",
   "via": "agent"
  },
+ "figure.ai/news/f-02-decommission": {
+  "description": "We love Figure 02. It is an incredible robot.",
+  "fetchedAt": "2026-10-03T09:53:14+00:00",
+  "ok": true,
+  "title": "F.02 Decommission",
+  "url": "https://www.figure.ai/news/f-02-decommission"
+ },
  "finshots.in/archive/the-biggest-crypto-scam-in-history-onecoin-ruja-ignatova": {
   "description": "An explainer on how a so-called Cryptoqueen fooled real investors with a fake cryptocurrency called OneCoin.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -12780,6 +12787,13 @@
   "ok": true,
   "title": "Silicon Valley predicted Jev a decade ago.",
   "url": "https://x.com/jpschroeder/status/2100230381588951209?s=46"
+ },
+ "x.com/status/2105316680251650555": {
+  "description": "Post by Figure (@Figure_robot)",
+  "fetchedAt": "2026-10-03T09:53:14+00:00",
+  "ok": true,
+  "title": "F.02 Decommission",
+  "url": "https://x.com/figure_robot/status/2105316680251650555?s=46"
  },
  "xda-developers.com/89-million-steam-account-details-leak": {
   "description": "We're still not sure how it even happened.",
