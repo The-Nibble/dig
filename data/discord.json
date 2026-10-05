@@ -7,7 +7,7 @@
   },
   "1085506605405175829": {
    "name": "liked-phrases",
-   "lastMessageId": "1548293545884913675"
+   "lastMessageId": "1556309166480429091"
   },
   "1085525451444854804": {
    "name": "link-gold-mine",
@@ -27,7 +27,7 @@
   },
   "1088925292099289088": {
    "name": "dev-tooling",
-   "lastMessageId": "1543635715277979762"
+   "lastMessageId": "1556313016360763424"
   },
   "1088931065609080922": {
    "name": "infra-links",
@@ -123,7 +123,7 @@
   },
   "1193261453436788866": {
    "name": "ai-links",
-   "lastMessageId": "1554347027163390032"
+   "lastMessageId": "1556309888723067015"
   },
   "1196900698265239643": {
    "name": "fonts",
@@ -27050,6 +27050,32 @@
     },
     {
      "url": "https://twitter.com/figure_robot/status/2105316680251650555?s=46",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1556309888723067015",
+   "ch": "1193261453436788866",
+   "ts": "2026-10-04T14:19:52.311000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://only-cli.com/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1556313016360763424",
+   "ch": "1088925292099289088",
+   "ts": "2026-10-04T14:32:17.998000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://github.com/davatron5000/microlighter",
      "text": null
     }
    ]

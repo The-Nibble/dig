@@ -3622,6 +3622,13 @@
   "title": "cxli233/FriendsDontLetFriends",
   "url": "https://github.com/cxli233/FriendsDontLetFriends"
  },
+ "github.com/davatron5000/microlighter": {
+  "description": "A zero-dep syntax highlighter that uses the CSS Highlights API.",
+  "fetchedAt": "2026-10-05T11:31:53+00:00",
+  "ok": true,
+  "title": "davatron5000/microlighter",
+  "url": "https://github.com/davatron5000/microlighter"
+ },
  "github.com/debian/wcurl": {
   "description": "A simple wrapper around curl to easily download files.",
   "fetchedAt": "2026-08-29T06:18:49+00:00",
@@ -7189,6 +7196,13 @@
   "title": "Onlook — Cursor for Designers",
   "url": "https://onlook.com/",
   "via": "agent"
+ },
+ "only-cli.com/": {
+  "description": "Oc distills web pages into a compact text view with numbered actions, so agents like Claude Code browse in tokens, not pages. 45× fewer tokens than raw HTML.",
+  "fetchedAt": "2026-10-05T11:31:53+00:00",
+  "ok": true,
+  "title": "only-cli: turn any website into a CLI for AI agents",
+  "url": "https://only-cli.com/"
  },
  "only4.dev/": {
   "description": "I am a Software Engineer based in Berlin, originally from RJ (India). I have worked with Flutter, Flask (Python) and JavaScript applications for 3+ years. Currently, I am working with React + Ruby.",
