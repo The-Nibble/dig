@@ -27,7 +27,7 @@
   },
   "1088925292099289088": {
    "name": "dev-tooling",
-   "lastMessageId": "1556313016360763424"
+   "lastMessageId": "1558902969146146967"
   },
   "1088931065609080922": {
    "name": "infra-links",
@@ -39,7 +39,7 @@
   },
   "1118468239790461048": {
    "name": "tools",
-   "lastMessageId": "1547494619388977192"
+   "lastMessageId": "1558854780145770587"
   },
   "1118551954956746844": {
    "name": "job-posts",
@@ -47,7 +47,7 @@
   },
   "1123407753151516683": {
    "name": "fun-tools",
-   "lastMessageId": "1546632557209329835"
+   "lastMessageId": "1558854460275695720"
   },
   "1128790553123897364": {
    "name": "research-papers",
@@ -27076,6 +27076,49 @@
    "urls": [
     {
      "url": "https://github.com/davatron5000/microlighter",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1558854460275695720",
+   "ch": "1123407753151516683",
+   "ts": "2026-10-11T14:51:05.445000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://www.dataguessr.com",
+     "text": null
+    },
+    {
+     "url": "https://www.dataguessr.com/",
+     "text": "Dataguessr"
+    }
+   ]
+  },
+  {
+   "id": "1558854780145770587",
+   "ch": "1118468239790461048",
+   "ts": "2026-10-11T14:52:21.708000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://www.kadoa.com/congress/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1558902969146146967",
+   "ch": "1088925292099289088",
+   "ts": "2026-10-11T18:03:50.861000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://rea.tools/",
      "text": null
     }
    ]

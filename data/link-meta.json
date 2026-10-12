@@ -5519,6 +5519,13 @@
   "title": "Kubernetes Failure Stories",
   "url": "https://k8s.af/"
  },
+ "kadoa.com/congress": {
+  "description": "Every stock trade disclosed by U.S. Congress and the executive branch under the STOCK Act. 57,000+ trades, searchable, open source.",
+  "fetchedAt": "2026-10-12T12:02:59+00:00",
+  "ok": true,
+  "title": "Congress & Executive Branch Stock Trades - Congress Trading Monitor",
+  "url": "https://www.kadoa.com/congress/"
+ },
  "kadoa.com/joblens": {
   "error": "FetchError: HTTP 404 from https://www.kadoa.com/joblens",
   "fetchedAt": "2026-09-28T10:57:06+00:00",
@@ -8048,6 +8055,13 @@
   "ok": true,
   "title": "CS294/194-196 Large Language Model Agents",
   "url": "https://rdi.berkeley.edu/llm-agents/f24"
+ },
+ "rea.tools/": {
+  "description": "Reverse engineer apps, binaries and browser behavior with your coding agent. Follow clear guides and try interactive examples with REA.",
+  "fetchedAt": "2026-10-12T12:02:59+00:00",
+  "ok": true,
+  "title": "REA — Reverse Engineering for Your Coding Agent",
+  "url": "https://rea.tools/"
  },
  "react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components": {
   "description": "The library for web and native user interfaces.",
