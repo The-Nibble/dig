@@ -8042,6 +8042,13 @@
   "title": "Razorpay Unveils Agentic Payments on ChatGPT with NPCI: An AI-Powered Conversational Payment Experience - Razorpay Blog",
   "url": "https://razorpay.com/blog/razorpay-unveils-agentic-payments-on-chatgpt-with-npci-indias-first-ai-powered-conversational-payment-experience/"
  },
+ "razorpay.com/slash-docs": {
+  "description": "SlashDocs by Razorpay is a self-hosted, open-source workspace to create, collaborate on and revise AI-generated documents with AI agents using MCP, comments, RBAC and version history.",
+  "fetchedAt": "2026-10-13T11:50:25+00:00",
+  "ok": true,
+  "title": "SlashDocs by Razorpay: Create, Collaborate & Revise Documents with AI Agents",
+  "url": "https://razorpay.com/slash-docs/"
+ },
  "rdi.berkeley.edu/adv-llm-agents/sp25": {
   "description": "Spring 2025.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
