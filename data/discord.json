@@ -15,7 +15,7 @@
   },
   "1086582190038593637": {
    "name": "to-read",
-   "lastMessageId": "1543847166068391996"
+   "lastMessageId": "1559788908051566603"
   },
   "1086589936452521994": {
    "name": "to-watch",
@@ -27132,6 +27132,19 @@
    "urls": [
     {
      "url": "https://razorpay.com/slash-docs/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1559788908051566603",
+   "ch": "1086582190038593637",
+   "ts": "2026-10-14T04:44:15.156000+00:00",
+   "author": "_m_a_d_a_r_a.",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://www.anthropic.com/engineering/redesigning-source-control",
      "text": null
     }
    ]

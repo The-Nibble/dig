@@ -366,6 +366,13 @@
   "title": "Careers",
   "url": "https://www.anthropic.com/careers#open-roles"
  },
+ "anthropic.com/engineering/redesigning-source-control": {
+  "description": "As our merges per day grew more than tenfold, source control became our biggest development bottleneck. Here, we share how we migrated to an in-house version control system in five months.",
+  "fetchedAt": "2026-10-14T09:32:49+00:00",
+  "ok": true,
+  "title": "Redesigning source control at Anthropic",
+  "url": "https://www.anthropic.com/engineering/redesigning-source-control"
+ },
  "anthropic.com/research/project-vend-1": {
   "description": "We let Claude run a small shop in the Anthropic office. Here's what happened.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
