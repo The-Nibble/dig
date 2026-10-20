@@ -8138,6 +8138,13 @@
   "title": "Recursive Sans & Mono",
   "url": "https://www.recursive.design/"
  },
+ "red.anthropic.com/oss-scanner": {
+  "description": "OSS Scanner is a free, opt-in service by Anthropic that runs periodic security scans of open-source repositories with our strongest models.",
+  "fetchedAt": "2026-10-20T09:27:29+00:00",
+  "ok": true,
+  "title": "OSS Scanner",
+  "url": "https://red.anthropic.com/oss-scanner/"
+ },
  "redblobgames.com/pathfinding/a-star/introduction.html": {
   "description": "Interactive tutorial for A*, Dijkstra.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",

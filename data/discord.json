@@ -27,7 +27,7 @@
   },
   "1088925292099289088": {
    "name": "dev-tooling",
-   "lastMessageId": "1558902969146146967"
+   "lastMessageId": "1561953596709277698"
   },
   "1088931065609080922": {
    "name": "infra-links",
@@ -27145,6 +27145,19 @@
    "urls": [
     {
      "url": "https://www.anthropic.com/engineering/redesigning-source-control",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1561953596709277698",
+   "ch": "1088925292099289088",
+   "ts": "2026-10-20T04:05:57.150000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://red.anthropic.com/oss-scanner/",
      "text": null
     }
    ]
