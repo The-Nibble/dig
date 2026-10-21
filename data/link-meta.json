@@ -12844,6 +12844,20 @@
   "title": "F.02 Decommission",
   "url": "https://x.com/figure_robot/status/2105316680251650555?s=46"
  },
+ "x.com/status/2112633155631108544": {
+  "description": "The PHP security team is giving advance notice: Upcoming security release Wed, Oct 21st 2026, 14:00UTC, two critical vulnerabilities, both rated CVSSv4 9.2. PHP users are encouraged to prepare to update. Earlier release if details become public or active exploit evidence.",
+  "fetchedAt": "2026-10-21T09:23:18+00:00",
+  "ok": true,
+  "title": "The PHP security team is giving advance notice: Upcoming security release Wed, Oct 21st 2026, 14:00UTC, two…",
+  "url": "https://x.com/thephpf/status/2112633155631108544?s=46"
+ },
+ "x.com/status/2112651162835185926": {
+  "description": "‼️ BREAKING: The private keys of 8 certificates from Indian certificate authority eMudhra were compromised, Mozilla says. Firefox blocked them within 3 hours. Each key should be a 116-digit number, but one was just 4. Anyone can guess them and forge HTTPS certs for any website.",
+  "fetchedAt": "2026-10-21T09:23:18+00:00",
+  "ok": true,
+  "title": "‼️ BREAKING: The private keys of 8 certificates from Indian certificate authority eMudhra were compromised,…",
+  "url": "https://x.com/IntCyberDigest/status/2112651162835185926"
+ },
  "xda-developers.com/89-million-steam-account-details-leak": {
   "description": "We're still not sure how it even happened.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",

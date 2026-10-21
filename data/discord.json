@@ -67,7 +67,7 @@
   },
   "1175798356023463998": {
    "name": "water-cooler",
-   "lastMessageId": "1545892916596318228"
+   "lastMessageId": "1562297459634344017"
   },
   "1175798441201389699": {
    "name": "welcome",
@@ -27158,6 +27158,40 @@
    "urls": [
     {
      "url": "https://red.anthropic.com/oss-scanner/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1562296844942315623",
+   "ch": "1175798356023463998",
+   "ts": "2026-10-21T02:49:53.906000+00:00",
+   "author": "aashutosh",
+   "said": "@he",
+   "urls": [
+    {
+     "url": "https://x.com/IntCyberDigest/status/2112651162835185926",
+     "text": null
+    },
+    {
+     "url": "https://twitter.com/IntCyberDigest/status/2112651162835185926",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1562297459634344017",
+   "ch": "1175798356023463998",
+   "ts": "2026-10-21T02:52:20.460000+00:00",
+   "author": "_m_a_d_a_r_a.",
+   "said": "php also seems be having big update",
+   "urls": [
+    {
+     "url": "https://x.com/thephpf/status/2112633155631108544?s=46",
+     "text": null
+    },
+    {
+     "url": "https://twitter.com/thephpf/status/2112633155631108544?s=46",
      "text": null
     }
    ]
