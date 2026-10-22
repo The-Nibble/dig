@@ -4472,6 +4472,13 @@
   "title": "EvolvingPrograms/openai-streams",
   "url": "https://github.com/SpellcraftAI/openai-streams"
  },
+ "github.com/stengo/deskpad": {
+  "description": "A virtual monitor for screen sharing.",
+  "fetchedAt": "2026-10-22T09:26:09+00:00",
+  "ok": true,
+  "title": "Stengo/DeskPad",
+  "url": "https://github.com/Stengo/DeskPad"
+ },
  "github.com/supabase-community/nextjs-openai-doc-search": {
   "description": "Template for building your own custom ChatGPT style doc search powered by Next.js, OpenAI, and Supabase.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
