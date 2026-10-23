@@ -3580,6 +3580,13 @@
   "title": "chung-leong/zigar",
   "url": "https://github.com/chung-leong/zigar"
  },
+ "github.com/cloudflare/security-audit-skill": {
+  "description": "A coding-agent skill for multi-phase security audits with independently verified, machine-readable findings.",
+  "fetchedAt": "2026-10-23T09:22:28+00:00",
+  "ok": true,
+  "title": "cloudflare/security-audit-skill",
+  "url": "https://github.com/cloudflare/security-audit-skill"
+ },
  "github.com/coder": {
   "description": "Coder provisions cloud development environments via Terraform, supporting Linux, macOS, Windows, X86, ARM, Kubernetes and more. - Coder.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
