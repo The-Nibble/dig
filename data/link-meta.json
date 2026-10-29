@@ -43,13 +43,13 @@
  },
  "66260701.com/": {
   "error": "FetchError: could not resolve 66260701.com: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://66260701.com"
  },
  "66260701/picasso": {
   "error": "TimeoutError: fetch exceeded 15s",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://66260701/picasso"
  },
@@ -417,13 +417,13 @@
  },
  "app.cheatsheet.to/": {
   "error": "SSLError: [SSL: TLSV1_UNRECOGNIZED_NAME] tlsv1 unrecognized name (_ssl.c:1010)",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://app.cheatsheet.to"
  },
  "app.comparely.co.in/": {
   "error": "FetchError: could not resolve app.comparely.co.in: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://app.comparely.co.in/"
  },
@@ -443,7 +443,7 @@
  },
  "app.jellylade.com/": {
   "error": "FetchError: could not resolve app.jellylade.com: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://app.jellylade.com/"
  },
@@ -492,14 +492,14 @@
   "url": "https://arcboost-marketplace.vercel.app/"
  },
  "archive.is/kkjes": {
-  "error": "TimeoutError: fetch exceeded 15s",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "error": "FetchError: HTTP 429 from https://archive.is/kKJEs",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://archive.is/kKJEs"
  },
  "archive.is/pjquu": {
-  "error": "TimeoutError: fetch exceeded 15s",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "error": "FetchError: HTTP 429 from https://archive.is/PJQUU",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://archive.is/PJQUU"
  },
@@ -774,7 +774,7 @@
  },
  "azsh.it/": {
   "error": "FetchError: HTTP 404 from https://azsh.it/",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://azsh.it/"
  },
@@ -944,7 +944,7 @@
  },
  "beyond2060.com/ai-work-zombie-apocalypse": {
   "error": "FetchError: HTTP 404 from https://jamjohnson.com/ai-work-zombie-apocalypse/",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.beyond2060.com/ai-work-zombie-apocalypse/"
  },
@@ -1165,7 +1165,7 @@
  },
  "blog.mastermind.dev/indexes-in-postgresql": {
   "error": "SSLError: [SSL: TLSV1_UNRECOGNIZED_NAME] tlsv1 unrecognized name (_ssl.c:1010)",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://blog.mastermind.dev/indexes-in-postgresql"
  },
@@ -1360,7 +1360,7 @@
  },
  "boards.greenhouse.io/growtherapy/jobs/4278952005": {
   "error": "FetchError: HTTP 404 from https://job-boards.greenhouse.io/growtherapy?error=true",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://boards.greenhouse.io/growtherapy/jobs/4278952005"
  },
@@ -1373,7 +1373,7 @@
  },
  "boards.greenhouse.io/peopledatalabs/jobs/5128400004": {
   "error": "FetchError: HTTP 404 from https://job-boards.greenhouse.io/peopledatalabs?error=true",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://boards.greenhouse.io/peopledatalabs/jobs/5128400004"
  },
@@ -1386,7 +1386,7 @@
  },
  "boards.greenhouse.io/supabase/jobs/4910374004": {
   "error": "FetchError: HTTP 404 from https://job-boards.greenhouse.io/supabase?error=true",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://boards.greenhouse.io/supabase/jobs/4910374004"
  },
@@ -1473,7 +1473,7 @@
  },
  "businessinsider.in/careers/news/i-invested-enough-money-to-retire-at-29-i-dont-ever-need-to-worry-about-earning-a-salary-again-/articleshow/106768569.cms": {
   "error": "FetchError: could not resolve www.businessinsider.in: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.businessinsider.in/careers/news/i-invested-enough-money-to-retire-at-29-i-dont-ever-need-to-worry-about-earning-a-salary-again-/articleshow/106768569.cms"
  },
@@ -1563,19 +1563,19 @@
  },
  "careerbrige.com/": {
   "error": "FetchError: could not resolve www.careerbrige.com: [Errno -3] Temporary failure in name resolution",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.careerbrige.com/"
  },
  "careers.ghost.org/infrastructure-engineer/en": {
   "error": "FetchError: HTTP 404 from https://404.homerun.co/vacancies/ghost/infrastructure-engineer_en",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://careers.ghost.org/infrastructure-engineer/en"
  },
  "careers.ghost.org/product-engineer/en": {
   "error": "FetchError: HTTP 404 from https://404.homerun.co/vacancies/ghost/product-engineer_en",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://careers.ghost.org/product-engineer/en"
  },
@@ -1830,7 +1830,7 @@
  },
  "cohttps//a16z.com/2023/05/25/ai-canon/urse.fast.ai": {
   "error": "FetchError: could not resolve cohttps: [Errno -3] Temporary failure in name resolution",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://cohttps://a16z.com/2023/05/25/ai-canon/urse.fast.ai/"
  },
@@ -2072,7 +2072,7 @@
  },
  "damo-vilab.github.io/anydoor-page": {
   "error": "FetchError: HTTP 404 from https://damo-vilab.github.io/AnyDoor-Page/",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://damo-vilab.github.io/AnyDoor-Page/"
  },
@@ -2465,7 +2465,7 @@
  },
  "discover.sonarsource.com/react-mistakes-and-how-to-avoid-them": {
   "error": "FetchError: HTTP 404 from https://discover.sonarsource.com/react-mistakes-and-how-to-avoid-them",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://discover.sonarsource.com/react-mistakes-and-how-to-avoid-them"
  },
@@ -2937,7 +2937,7 @@
  },
  "explee.com/s": {
   "error": "FetchError: HTTP 404 from https://explee.com/s",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://explee.com/s"
  },
@@ -3015,7 +3015,7 @@
  },
  "feynman.ai/": {
   "error": "FetchError: could not resolve www.feynman.ai: [Errno -3] Temporary failure in name resolution",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.feynman.ai/"
  },
@@ -3216,7 +3216,7 @@
  },
  "fullystacked.net/centering-things": {
   "error": "SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://fullystacked.net/centering-things"
  },
@@ -3317,7 +3317,7 @@
  },
  "git.gaozih.top/": {
   "error": "FetchError: could not resolve git.gaozih.top: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://git.gaozih.top/"
  },
@@ -4186,7 +4186,7 @@
  },
  "github.com/movie-web/movie-web": {
   "error": "FetchError: HTTP 404 from https://api.github.com/repos/movie-web/movie-web",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://github.com/movie-web/movie-web"
  },
@@ -4859,7 +4859,7 @@
  },
  "gowind.github.io/post/self_evaluation": {
   "error": "FetchError: HTTP 404 from https://gowind.github.io/post/self_evaluation/",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://gowind.github.io/post/self_evaluation/"
  },
@@ -4879,7 +4879,7 @@
  },
  "grnh.se/a195251f3us": {
   "error": "FetchError: HTTP 404 from https://careers.godaddy/en-US/jobs/5533058003?gh_jid=5533058003&gh_src=a195251f3us&source=LinkedIn",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://grnh.se/a195251f3us?source=LinkedIn"
  },
@@ -5004,7 +5004,7 @@
  },
  "hotfix.jobs/jobs/c6f670e7-56cc-4133-b296-4d6d13261cb2": {
   "error": "FetchError: HTTP 429 from https://hotfix.jobs/jobs/c6f670e7-56cc-4133-b296-4d6d13261cb2",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://hotfix.jobs/jobs/c6f670e7-56cc-4133-b296-4d6d13261cb2"
  },
@@ -5076,7 +5076,7 @@
  },
  "ia902205.us.archive.org/15/items/pdfy-tg1mumpwvrml6qd0/228831637-optimal-tip-to-tip-efficiency.pdf": {
   "error": "TimeoutError: fetch exceeded 15s",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://ia902205.us.archive.org/15/items/pdfy-tG1MuMpwvrML6QD0/228831637-Optimal-Tip-to-Tip-Efficiency.pdf"
  },
@@ -5399,19 +5399,19 @@
  },
  "jobs.lever.co/dyte-io/d038d490-f7c8-423e-900d-ec4ad1e4e69f": {
   "error": "FetchError: HTTP 404 from https://jobs.lever.co/dyte-io/d038d490-f7c8-423e-900d-ec4ad1e4e69f",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://jobs.lever.co/dyte-io/d038d490-f7c8-423e-900d-ec4ad1e4e69f"
  },
  "jobs.lever.co/uniphore/61df15ce-8a6c-47e9-8c3f-c18915d241f2": {
   "error": "FetchError: HTTP 404 from https://jobs.lever.co/uniphore/61df15ce-8a6c-47e9-8c3f-c18915d241f2",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://jobs.lever.co/uniphore/61df15ce-8a6c-47e9-8c3f-c18915d241f2"
  },
  "jobs.lever.co/unlimit/51fa8150-3256-4d39-bc87-8d0ab4a36357": {
   "error": "FetchError: HTTP 404 from https://jobs.lever.co/unlimit/51fa8150-3256-4d39-bc87-8d0ab4a36357/",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://jobs.lever.co/unlimit/51fa8150-3256-4d39-bc87-8d0ab4a36357/"
  },
@@ -5549,7 +5549,7 @@
  },
  "kadoa.com/joblens": {
   "error": "FetchError: HTTP 404 from https://www.kadoa.com/joblens",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.kadoa.com/joblens"
  },
@@ -6043,7 +6043,7 @@
  },
  "lp.avatouch.net/en": {
   "error": "FetchError: could not resolve lp.avatouch.net: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://lp.avatouch.net/en/"
  },
@@ -6425,7 +6425,7 @@
  },
  "million.dev/blog/lint": {
   "error": "FetchError: HTTP 404 from https://million.dev/blog/lint",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://million.dev/blog/lint"
  },
@@ -6707,7 +6707,7 @@
  },
  "neets.ai/": {
   "error": "SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://neets.ai/"
  },
@@ -7513,7 +7513,7 @@
  },
  "patentlyapple.com/2024/05/today-apple-won-51-patents-with-one-describing-a-foldable-device-that-includes-a-display-cover-layer.html": {
   "error": "FetchError: HTTP 404 from https://www.patentlyapple.com/2024/05/today-apple-won-51-patents-with-one-describing-a-foldable-device-that-includes-a-display-cover-layer.html",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.patentlyapple.com/2024/05/today-apple-won-51-patents-with-one-describing-a-foldable-device-that-includes-a-display-cover-layer.html"
  },
@@ -7554,7 +7554,7 @@
  },
  "peabee.substack.com/p/whats-inside-the-qr-code-menu-at": {
   "error": "FetchError: HTTP 403 from https://peabee.substack.com/p/whats-inside-the-qr-code-menu-at",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://peabee.substack.com/p/whats-inside-the-qr-code-menu-at"
  },
@@ -7605,13 +7605,13 @@
  },
  "phuoc.ng/collection/html-dom/change-the-favicon-dynamically-based-on-user-color-scheme-preference": {
   "error": "TimeoutError: fetch exceeded 15s",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://phuoc.ng/collection/html-dom/change-the-favicon-dynamically-based-on-user-color-scheme-preference/"
  },
  "phuoc.ng/collection/react-drag-drop/build-a-custom-scrollbar": {
   "error": "TimeoutError: fetch exceeded 15s",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://phuoc.ng/collection/react-drag-drop/build-a-custom-scrollbar/"
  },
@@ -7676,13 +7676,13 @@
  },
  "platform.openai.com/docs/guides/fine-tuning/create-a-fine-tuned-model": {
   "error": "FetchError: HTTP 404 from https://developers.openai.com/api/docs/guides/fine-tuning/create-a-fine-tuned-model",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://platform.openai.com/docs/guides/fine-tuning/create-a-fine-tuned-model"
  },
  "platform.openai.com/docs/guides/optimizing-llm-accuracy/llm-optimization-context": {
   "error": "FetchError: HTTP 404 from https://developers.openai.com/api/docs/guides/optimizing-llm-accuracy/llm-optimization-context",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://platform.openai.com/docs/guides/optimizing-llm-accuracy/llm-optimization-context"
  },
@@ -7866,7 +7866,7 @@
  },
  "producthunt.com/jobs": {
   "error": "FetchError: HTTP 403 from https://www.producthunt.com/jobs?&",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.producthunt.com/jobs?&"
  },
@@ -7942,7 +7942,7 @@
  },
  "protocals.xyz/": {
   "error": "FetchError: could not resolve www.protocals.xyz: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.protocals.xyz/"
  },
@@ -8045,7 +8045,7 @@
  },
  "raycast.com/massimiliano_pasquini/raycast-ollama.": {
   "error": "FetchError: HTTP 404 from https://www.raycast.com/massimiliano_pasquini/raycast-ollama.",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.raycast.com/massimiliano_pasquini/raycast-ollama."
  },
@@ -8114,13 +8114,13 @@
  },
  "read.cv/teams/playai": {
   "error": "FetchError: HTTP 402 from https://read.cv/teams/playai",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://read.cv/teams/playai"
  },
  "read.cv/teams/tiptop/product-designer-0cin87jqt2j7yykqznxv": {
   "error": "FetchError: HTTP 402 from https://read.cv/teams/tiptop/product-designer-0ciN87jQT2J7yYkQZnxV",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://read.cv/teams/tiptop/product-designer-0ciN87jQT2J7yYkQZnxV"
  },
@@ -8393,7 +8393,7 @@
  },
  "roadmap-ui.com/": {
   "error": "FetchError: could not resolve www.roadmap-ui.com: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.roadmap-ui.com/"
  },
@@ -8420,7 +8420,7 @@
  },
  "rodydavis.com/sqlite/nosql": {
   "error": "FetchError: HTTP 403 from https://rodydavis.com/sqlite/nosql",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://rodydavis.com/sqlite/nosql"
  },
@@ -8454,7 +8454,7 @@
  },
  "rubyonremote.com/jobs/18983-software-engineer-co-op-at-wave-hq": {
   "error": "FetchError: HTTP 403 from https://rubyonremote.com/jobs/18983-software-engineer-co-op-at-wave-hq",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://rubyonremote.com/jobs/18983-software-engineer-co-op-at-wave-hq"
  },
@@ -8784,7 +8784,7 @@
  },
  "shortwave.com/ai": {
   "error": "FetchError: HTTP 404 from https://www.shortwave.com/ai/",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.shortwave.com/ai/"
  },
@@ -9070,7 +9070,7 @@
  },
  "srijantech.hire.trakstar.com/jobs/fk0xn1k": {
   "error": "FetchError: HTTP 404 from https://srijantech.hire.trakstar.com/jobs/fk0xn1k",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://srijantech.hire.trakstar.com/jobs/fk0xn1k"
  },
@@ -9268,7 +9268,7 @@
  },
  "store.shantanugoel.com/product/github-contribution-skyline-3d-model": {
   "error": "FetchError: could not resolve store.shantanugoel.com: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://store.shantanugoel.com/product/github-contribution-skyline-3d-model/"
  },
@@ -9458,7 +9458,7 @@
  },
  "tanstack.com/router/v1/docs/framework/react/guide/virtual-file-routes": {
   "error": "FetchError: HTTP 404 from https://tanstack.com/router/latest/docs/guide/virtual-file-routes",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://tanstack.com/router/v1/docs/framework/react/guide/virtual-file-routes"
  },
@@ -9471,7 +9471,7 @@
  },
  "tduyng.github.io/blog/dynamic-github-profile-readme": {
   "error": "FetchError: HTTP 404 from https://tduyng.github.io/blog/dynamic-github-profile-readme/",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://tduyng.github.io/blog/dynamic-github-profile-readme/"
  },
@@ -9484,7 +9484,7 @@
  },
  "tech.scapia.in/one-codebase-every-screen-how-scapia-built-a-multi-platform-flutter-app-6bf75a3cbbde": {
   "error": "SSLError: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010)",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://tech.scapia.in/one-codebase-every-screen-how-scapia-built-a-multi-platform-flutter-app-6bf75a3cbbde"
  },
@@ -10343,7 +10343,7 @@
  },
  "wellfound.com/company/viametamap": {
   "error": "FetchError: HTTP 403 from https://wellfound.com/company/viametamap",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://wellfound.com/company/viametamap"
  },
@@ -10467,7 +10467,7 @@
  },
  "work.mercor.io/": {
   "error": "FetchError: could not resolve work.mercor.io: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://work.mercor.io/"
  },
@@ -13757,7 +13757,7 @@
  },
  "ytpics.com/": {
   "error": "FetchError: could not resolve www.ytpics.com: [Errno -2] Name or service not known",
-  "fetchedAt": "2026-09-28T10:57:06+00:00",
+  "fetchedAt": "2026-10-29T10:55:29+00:00",
   "ok": false,
   "url": "https://www.ytpics.com/"
  },
