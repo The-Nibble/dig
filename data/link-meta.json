@@ -8956,6 +8956,13 @@
   "title": "Making Sense Of “Senseless” JavaScript Features — Smashing Magazine",
   "url": "https://www.smashingmagazine.com/2023/12/making-sense-of-senseless-javascript-features/"
  },
+ "smsofdeath.com/": {
+  "description": "A single malformed WAP Push SMS crashes com.android.phone on Android. Zero-click, remote, drops emergency calls. Patched in the October 2026 Android update.",
+  "fetchedAt": "2026-10-30T10:53:19+00:00",
+  "ok": true,
+  "title": "SMS of Death",
+  "url": "https://smsofdeath.com/"
+ },
  "snackprompt.com/": {
   "description": "Discover, share and remix AI prompts, images and automations from the Snack Prompt community. The home for prompt engineers and AI builders.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
