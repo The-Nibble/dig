@@ -4911,6 +4911,13 @@
   "title": "Detecting Scroll Direction in React: a StackOverflow Answer Turned NPM Package | HackerNoon",
   "url": "https://hackernoon.com/detecting-scroll-direction-in-react-a-stackoverflow-answer-turned-npm-package"
  },
+ "hackertube.org/": {
+  "description": "The YouTube videos that Hacker News keeps telling each other to watch.",
+  "fetchedAt": "2026-11-02T12:28:07+00:00",
+  "ok": true,
+  "title": "HackerTube",
+  "url": "https://hackertube.org/"
+ },
  "hacks.mozilla.org/2026/05/behind-the-scenes-hardening-firefox": {
   "description": "New details about what we found, and how agentic harnesses are now able to reproduce real bugs and dismiss false positives.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
