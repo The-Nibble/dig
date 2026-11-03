@@ -27,7 +27,7 @@
   },
   "1088925292099289088": {
    "name": "dev-tooling",
-   "lastMessageId": "1561953596709277698"
+   "lastMessageId": "1566872293026828419"
   },
   "1088931065609080922": {
    "name": "infra-links",
@@ -27244,6 +27244,32 @@
    "urls": [
     {
      "url": "https://hackertube.org/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1566872232611938395",
+   "ch": "1088925292099289088",
+   "ts": "2026-11-02T17:50:51.333000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://anoma.ly/hex/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1566872293026828419",
+   "ch": "1088925292099289088",
+   "ts": "2026-11-02T17:51:05.737000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://github.com/google/elephant-goldfish-model",
      "text": null
     }
    ]

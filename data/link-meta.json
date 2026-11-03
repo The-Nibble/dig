@@ -359,6 +359,13 @@
   "url": "https://annas-archive.org/",
   "via": "agent"
  },
+ "anoma.ly/hex": {
+  "description": "Private, local voice dictation. Hold the shortcut, speak, and release.",
+  "fetchedAt": "2026-11-03T11:57:26+00:00",
+  "ok": true,
+  "title": "Hex: local voice dictation",
+  "url": "https://anoma.ly/hex/"
+ },
  "anthropic.com/careers": {
   "description": "Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -3922,6 +3929,13 @@
   "ok": true,
   "title": "google-gemini/jot-gemini-transcribe-macOS",
   "url": "https://github.com/google-gemini/jot-gemini-transcribe-macOS"
+ },
+ "github.com/google/elephant-goldfish-model": {
+  "description": "Open-source skills for designing and reviewing software with AI agents.",
+  "fetchedAt": "2026-11-03T11:57:26+00:00",
+  "ok": true,
+  "title": "google/elephant-goldfish-model",
+  "url": "https://github.com/google/elephant-goldfish-model"
  },
  "github.com/greatfrontend/awesome-front-end-system-design": {
   "description": "Curated front end system design resources for interviews and learning.",
