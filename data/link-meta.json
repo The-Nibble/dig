@@ -2328,6 +2328,13 @@
   "title": "Automatically display your latest posts on your GitHub Profile README - DevDojo",
   "url": "https://devdojo.com/bobbyiliev/automatically-display-your-latest-posts-on-your-github-profile-readme"
  },
+ "developer.apple.com/news?id=gdk2umrf": {
+  "description": "Starting today with the iOS 27.3, iPadOS 27.3, macOS 27.3, and visionOS 27.3 betas, a new Developer Preview enables any developer to integrate their app with Siri AI, giving businesses and developers new ways to reach and serve their customers.Siri AI, an entirely new version of Siri that is profoundly more capable, conversational, and personal, is designed to be deeply integrated into Apple’s ope.",
+  "fetchedAt": "2026-11-05T12:24:16+00:00",
+  "ok": true,
+  "title": "Siri AI is now open to all developers - Latest News - Apple Developer",
+  "url": "https://developer.apple.com/news/?id=gdk2umrf"
+ },
  "developer.apple.com/support/alternative-browser-engines": {
   "description": "IOS 17.4 introduces new capabilities that let iOS apps use alternative browser engines — browser engines other than WebKit — for dedicated browser apps and apps providing in-app browsing experiences in the EU.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
