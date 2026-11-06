@@ -9109,6 +9109,13 @@
   "ok": false,
   "url": "https://srijantech.hire.trakstar.com/jobs/fk0xn1k"
  },
+ "sshhole.com/": {
+  "description": "Openssh on musl linux has been letting people into password-less accounts since 2016.",
+  "fetchedAt": "2026-11-06T12:09:12+00:00",
+  "ok": true,
+  "title": "*sshole · sshhole.com",
+  "url": "https://sshhole.com/"
+ },
  "sshx.io/": {
   "description": "Fast, collaborative live terminals in the browser, with real-time chat, cursors, and activity tracking.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -12906,6 +12913,13 @@
   "ok": true,
   "title": "‼️ BREAKING: The private keys of 8 certificates from Indian certificate authority eMudhra were compromised,…",
   "url": "https://x.com/IntCyberDigest/status/2112651162835185926"
+ },
+ "x.com/status/2118359846147834318": {
+  "description": "Today's OpenSSH vulnerability blew my mind accounts with no password store the hashed field as * if you use any password over 256 characters, it returns * and therefore matches the hash lmao this is an over simplification, but basically true.",
+  "fetchedAt": "2026-11-06T12:09:12+00:00",
+  "ok": true,
+  "title": "today's OpenSSH vulnerability blew my mind accounts with no password store the hashed field as * if you use…",
+  "url": "https://x.com/ZazenCodes/status/2118359846147834318?a=waNqxNPUDcW_QObYwUU&s=19"
  },
  "xda-developers.com/89-million-steam-account-details-leak": {
   "description": "We're still not sure how it even happened.",
