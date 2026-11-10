@@ -7456,6 +7456,13 @@
   "title": "Using Cloudflare on your website could be blocking RSS users",
   "url": "https://openrss.org/blog/using-cloudflare-on-your-website-could-be-blocking-rss-users"
  },
+ "opuswitch.bread.build/": {
+  "description": "Say what you use Opus 5.5 for and the effort level you run. See what switching to Fable 5.2 gets you.",
+  "fetchedAt": "2026-11-10T12:41:19+00:00",
+  "ok": true,
+  "title": "Opuswitch: is Fable 5.2 a free win for you?",
+  "url": "https://opuswitch.bread.build/"
+ },
  "osaasy.dev/": {
   "description": "Basically... the MIT do-whatever-you-want license, but with the commercial rights for SaaS reserved for the copyright holder.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",

@@ -55,7 +55,7 @@
   },
   "1147968181152006174": {
    "name": "general",
-   "lastMessageId": "1555070093912834180"
+   "lastMessageId": "1569597608291205142"
   },
   "1166653585237495818": {
    "name": "music-recommendations",
@@ -123,7 +123,7 @@
   },
   "1193261453436788866": {
    "name": "ai-links",
-   "lastMessageId": "1567803189624049726"
+   "lastMessageId": "1569597652834852944"
   },
   "1196900698265239643": {
    "name": "fonts",
@@ -27313,6 +27313,19 @@
    "urls": [
     {
      "url": "https://sshhole.com/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1569597652834852944",
+   "ch": "1193261453436788866",
+   "ts": "2026-11-10T06:20:42.150000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://opuswitch.bread.build/",
      "text": null
     }
    ]
