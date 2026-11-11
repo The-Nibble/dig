@@ -27,7 +27,7 @@
   },
   "1088925292099289088": {
    "name": "dev-tooling",
-   "lastMessageId": "1566872293026828419"
+   "lastMessageId": "1569985121476411512"
   },
   "1088931065609080922": {
    "name": "infra-links",
@@ -27326,6 +27326,19 @@
    "urls": [
     {
      "url": "https://opuswitch.bread.build/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1569985121476411512",
+   "ch": "1088925292099289088",
+   "ts": "2026-11-11T08:00:21.873000+00:00",
+   "author": "aashutosh",
+   "said": "Search subdomain records on apex domain",
+   "urls": [
+    {
+     "url": "https://crt.name/v1/search?apex=nibbles.dev",
      "text": null
     }
    ]

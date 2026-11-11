@@ -1990,6 +1990,13 @@
   "title": "CRDT Papers • Conflict-free Replicated Data Types",
   "url": "https://crdt.tech/papers.html"
  },
+ "crt.name/v1/search?apex=nibbles.dev": {
+  "description": null,
+  "fetchedAt": "2026-11-11T11:53:56+00:00",
+  "ok": true,
+  "title": null,
+  "url": "https://crt.name/v1/search?apex=nibbles.dev"
+ },
  "cryptologie.net/": {
   "description": null,
   "fetchedAt": "2026-08-29T05:01:46+00:00",
