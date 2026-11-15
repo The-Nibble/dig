@@ -47,7 +47,7 @@
   },
   "1123407753151516683": {
    "name": "fun-tools",
-   "lastMessageId": "1558854460275695720"
+   "lastMessageId": "1571379793520369827"
   },
   "1128790553123897364": {
    "name": "research-papers",
@@ -27339,6 +27339,32 @@
    "urls": [
     {
      "url": "https://crt.name/v1/search?apex=nibbles.dev",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1571379778584453162",
+   "ch": "1123407753151516683",
+   "ts": "2026-11-15T04:22:14.039000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://tripneverleaves.com/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1571379793520369827",
+   "ch": "1123407753151516683",
+   "ts": "2026-11-15T04:22:17.600000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://foodnevercomes.com/",
      "text": null
     }
    ]

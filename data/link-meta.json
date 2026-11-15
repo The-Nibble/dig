@@ -3169,6 +3169,12 @@
   "title": "All Google fonts - Font sensei - Google fonts categorized by tag names",
   "url": "https://fontsensei.com/"
  },
+ "foodnevercomes.com/": {
+  "error": "FetchError: HTTP 403 from https://foodnevercomes.com/",
+  "fetchedAt": "2026-11-15T11:58:18+00:00",
+  "ok": false,
+  "url": "https://foodnevercomes.com/"
+ },
  "foojay.io/today/indexing-all-of-wikipedia-on-a-laptop": {
   "description": "Indexing the entirety of English Wikipedia on a laptop has become a practical reality thanks to recent advances in the JVector library that will be part of the imminent 3.0 release. - by Jonathan Ellis.",
   "fetchedAt": "2026-08-29T05:01:46+00:00",
@@ -9989,6 +9995,13 @@
   "ok": true,
   "title": "AggregateError in JavaScript",
   "url": "https://www.trevorlasn.com/blog/aggregate-error-in-javascript/"
+ },
+ "tripneverleaves.com/": {
+  "description": "All the anticipation of travel, none of the airport. Book it, never go, keep the money.",
+  "fetchedAt": "2026-11-15T11:58:18+00:00",
+  "ok": true,
+  "title": "TripNeverLeaves — book a trip that never leaves",
+  "url": "https://tripneverleaves.com/"
  },
  "tsdocs.dev/": {
   "description": "A tool to browse type documentation for npm packages, letting you look up TypeScript types and API references for published packages.",
