@@ -63,7 +63,7 @@
   },
   "1175446516933075166": {
    "name": "tech-gossip",
-   "lastMessageId": "1448883903820730368"
+   "lastMessageId": "1572092034796232724"
   },
   "1175798356023463998": {
    "name": "water-cooler",
@@ -27365,6 +27365,19 @@
    "urls": [
     {
      "url": "https://foodnevercomes.com/",
+     "text": null
+    }
+   ]
+  },
+  {
+   "id": "1572092034796232724",
+   "ch": "1175446516933075166",
+   "ts": "2026-11-17T03:32:29.153000+00:00",
+   "author": "aashutosh",
+   "said": "",
+   "urls": [
+    {
+     "url": "https://news.ycombinator.com/item?id=50522980",
      "text": null
     }
    ]
